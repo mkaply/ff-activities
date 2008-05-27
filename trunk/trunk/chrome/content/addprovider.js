@@ -9,6 +9,8 @@ var category;
 var host;
 
 function onLoad() {
+  var namespaceURI = "http://www.microsoft.com/schemas/openservicedescription/1.0";
+
   const MODE_RDONLY   = 0x01;
   const PERMS_FILE    = 0644;
 
@@ -30,13 +32,13 @@ function onLoad() {
                                       "text/xml");
   fileInStream.close();
 
-  var homepageUrl = doc.getElementsByTagName("homepageUrl")[0]
-  var activity = doc.getElementsByTagName("activity")[0]
+  var homepageUrl = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0]
+  var activity = doc.getElementsByTagNameNS(namespaceURI, "activity")[0]
   category = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
-  var display = doc.getElementsByTagName("display")[0]
-  name = display.getElementsByTagName("name")[0].textContent.replace(/^\s*|\s*$/g,'');
+  var display = doc.getElementsByTagNameNS(namespaceURI, "display")[0]
+  name = display.getElementsByTagNameNS(namespaceURI, "name")[0].textContent.replace(/^\s*|\s*$/g,'');
   try {
-    icon = display.getElementsByTagName("icon")[0].textContent.replace(/^\s*|\s*$/g,'');
+    icon = display.getElementsByTagNameNS(namespaceURI, "icon")[0].textContent.replace(/^\s*|\s*$/g,'');
   } catch (ex) {
     /* Icon is optional */
   }
