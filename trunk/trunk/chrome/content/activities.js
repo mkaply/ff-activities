@@ -629,8 +629,6 @@
 
     var ioServ = Components.classes["@mozilla.org/network/io-service;1"]
                            .getService(Components.interfaces.nsIIOService);
-    var winreg = Components.classes["@mozilla.org/windows-registry-key;1"]
-                           .createInstance(Components.interfaces.nsIWindowsRegKey);
     var tempfile = Components.classes["@mozilla.org/file/local;1"]
                              .createInstance(Components.interfaces.nsILocalFile);
 
