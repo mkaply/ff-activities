@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE activities SYSTEM "chrome://msft_activities/locale/activities.dtd">
+
+<dialog 
+  title="&manageActivitiesDialog.label;"
+  orient="vertical"
+  autostretch="always"
+  buttons="accept"
+  width="640"
+  height="480"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  onload="onLoad();"
+  dialogaccept="onOK();">
+
+  <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/manage_activities.js"/>
+
+  <popupset>
+    <popup id="clipmenu" onpopupshowing="return generatePopup(event);">
+    <menuitem label="&enable.label;" id="enable" oncommand="onEnableDisable();"/>
+    <menuitem label="&disable.label;" id="disable" oncommand="onEnableDisable();"/>
+    <menuitem label="&removeDefault.label;" id="removedefault" oncommand="onSetDefault();"/>
+    <menuitem label="&setDefault.label;" id="setdefault" oncommand="onSetDefault();"/>
+    <menuseparator/>
+    <menuitem label="&delete.label;" id="delete" oncommand="onDeleteActivity();"/>
+    </popup>
+  </popupset>
+
+  <tree hidecolumnpicker="true" flex="1" id="activities-tree" context="clipmenu" onselect="enableDisableButtons();">
+    <treecols>
+      <treecol primary="true" label="&nameColumn.label;" flex="4"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&addressColumn.label;" flex="2"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&categoryColumn.label;" flex="1"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&statusColumn.label;" flex="1"/>
+    </treecols>
+  </tree>
+  <separator/>
+  <hbox align="right" height="25">
+    <button hidden="true" label="&removeDefault.label;" id="removedefault-button" oncommand="onSetDefault();"/>
+    <button hidden="true" label="&setDefault.label;" id="setdefault-button" oncommand="onSetDefault();"/>
+    <button hidden="true" label="&enable.label;" id="enable-button" oncommand="onEnableDisable();"/>
+    <button hidden="true" label="&disable.label;" id="disable-button" oncommand="onEnableDisable();"/>
+    <button hidden="true" label="&delete.label;" id="delete-button" oncommand="onDeleteActivity();"/>
+  </hbox>
+</dialog>

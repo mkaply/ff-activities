@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<overlay id="activities-preview" 
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <popupset id="mainPopupSet">
+    <popup id="activities-preview-panel" allowevents="true">
+        <iframe type="content" id="activities-preview-iframe" height="240" width="320" src="about:blank" flex="1" style="overflow: hidden"/>
+    </popup>
+  </popupset>
+</overlay>

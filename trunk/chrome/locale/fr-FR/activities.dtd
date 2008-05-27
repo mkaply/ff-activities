@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Activities avec Firefox">
+<!ENTITY activities.label "Activities">
+<!ENTITY moreActivities.label "Davantage d&apos;Activities">
+<!ENTITY findMoreActivities.label "Trouver davantage d&apos;Activities…">
+<!ENTITY manageActivities.label "Gérer les Activities…">
+<!ENTITY manageActivitiesDialog.label "Gestion des Activities">
+<!ENTITY nameColumn.label "Nom">
+<!ENTITY addressColumn.label "Adresse">
+<!ENTITY categoryColumn.label "Catégorie">
+<!ENTITY statusColumn.label "Statut">
+<!ENTITY enable.label "Activer">
+<!ENTITY disable.label "Désactiver">
+<!ENTITY setDefault.label "Choisir comme service par défaut">
+<!ENTITY removeDefault.label "Ne plus choisir par défaut">
+<!ENTITY delete.label "Supprimer">
+<!ENTITY addMessage.description "Voulez-vous ajouter ce fournisseur d&apos;&apos;Activity&apos; ?">
+<!ENTITY name.label "Nom :">
+<!ENTITY from.label "De :">
+<!ENTITY webAddress.label "Adresse Web :">
+<!ENTITY type.label "Type :">
+<!ENTITY makeDefault.label "Choisir comme fournisseur par défaut pour ce type d&apos;&apos;Activity&apos;">
+<!ENTITY addProvider.label "Ajouter un service">
+<!ENTITY displayActivityButton.label "Afficher le bouton de cet &apos;Activity&apos; à la sélection">

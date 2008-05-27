@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Firefox Activities">
+<!ENTITY activities.label "Activities">
+<!ENTITY moreActivities.label "Weitere Activities">
+<!ENTITY findMoreActivities.label "Weitere Activities finden...">
+<!ENTITY manageActivities.label "Activities verwalten...">
+<!ENTITY manageActivitiesDialog.label "Activities verwalten">
+<!ENTITY nameColumn.label "Name">
+<!ENTITY addressColumn.label "Adresse">
+<!ENTITY categoryColumn.label "Kategorie">
+<!ENTITY statusColumn.label "Status">
+<!ENTITY enable.label "Aktivieren">
+<!ENTITY disable.label "Deaktivieren">
+<!ENTITY setDefault.label "Als Standard benutzen">
+<!ENTITY removeDefault.label "Standard löschen">
+<!ENTITY delete.label "Löschen">
+<!ENTITY addMessage.description "Diesen Activity-Anbieter hinzufügen?">
+<!ENTITY name.label "Name:">
+<!ENTITY from.label "Anbieter:">
+<!ENTITY webAddress.label "Adresse:">
+<!ENTITY type.label "Typ:">
+<!ENTITY makeDefault.label "Als Standard-Anbieter für diese Activity festlegen">
+<!ENTITY addProvider.label "Anbieter hinzufügen">
+<!ENTITY displayActivityButton.label "Activity-Schaltfläche nach Auswählen anzeigen">
