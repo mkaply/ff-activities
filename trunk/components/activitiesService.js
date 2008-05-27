@@ -94,7 +94,7 @@ function isValidService(doc) {
   }
   var category = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
   if (category.length == 0) {
-    return;
+    return false;
   }
 
   var activityActions = activity.getElementsByTagNameNS(ns, "activityAction");
@@ -288,26 +288,31 @@ function (iid) {
 }
 
 var externalModule = new Object();
-externalModule.firstTime = true;
 
 externalModule.registerSelf =
 function (compMgr, fileSpec, location, type)
 {
-
-  if (this.firstTime) {
-    this.firstTime = false;
-    /* Only delay registration if we a FF3 beta prior to 4 */
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]  
-                            .getService(Components.interfaces.nsIXULAppInfo);
-    var versionChecker = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-                                   .getService(Components.interfaces.nsIVersionComparator);
-    if ((versionChecker.compare(appInfo.version, "3.0b4") < 0) &&
-        (versionChecker.compare(appInfo.version, "2.0.0.*") > 0)) {
-      debug("*** Deferring registration of ieExternal JS components\n");
-      throw Components.results.NS_ERROR_FACTORY_REGISTER_AGAIN;
-    }
-  }
   debug("ieExternal registering (all right -- a JavaScript module!)");
+  var catman = Components.classes["@mozilla.org/categorymanager;1"].
+                          getService(Components.interfaces.nsICategoryManager);
+                          
+  const JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY = "JavaScript global property";
+  
+  var external = catman.getCategoryEntry(JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY, "external");
+  
+  /* If external is already registered by someone that has the same contract ID, just return */
+  /* This will allow Operator and Activities to use the same service code */
+  if (external == EXTERNAL_CONTRACTID) {
+    return;
+  }
+
+  
+  catman.addCategoryEntry(JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY,
+                          "external",
+                          EXTERNAL_CONTRACTID,
+                          true,
+                          true);
+                          
   compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 
   compMgr.registerFactoryLocation(EXTERNAL_CID, 
@@ -316,17 +321,6 @@ function (compMgr, fileSpec, location, type)
                                   fileSpec, 
                                   location,
                                   type);
-  const CATMAN_CONTRACTID = "@mozilla.org/categorymanager;1";
-  const nsICategoryManager = Components.interfaces.nsICategoryManager;
-  var catman = Components.classes[CATMAN_CONTRACTID].
-                          getService(nsICategoryManager);
-                          
-  const JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY = "JavaScript global property";
-  catman.addCategoryEntry(JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY,
-                          "external",
-                          EXTERNAL_CONTRACTID,
-                          true,
-                          true);
 }
 
 externalModule.getClassObject =
