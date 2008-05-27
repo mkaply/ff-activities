@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Activiteiten">
+<!ENTITY activities.label "Activiteiten">
+<!ENTITY moreActivities.label "Meer activiteiten">
+<!ENTITY findMoreActivities.label "Meer activiteiten zoeken...">
+<!ENTITY manageActivities.label "Activiteiten beheren...">
+<!ENTITY manageActivitiesDialog.label "Activiteiten beheren">
+<!ENTITY nameColumn.label "Naam">
+<!ENTITY addressColumn.label "Adres">
+<!ENTITY categoryColumn.label "Categorie">
+<!ENTITY statusColumn.label "Status">
+<!ENTITY enable.label "Inschakelen">
+<!ENTITY disable.label "Uitschakelen">
+<!ENTITY setDefault.label "Als standaard instellen">
+<!ENTITY removeDefault.label "Als standaard verwijderen">
+<!ENTITY delete.label "Verwijderen">
+<!ENTITY addMessage.description "Wilt u deze activiteitenaanbieder toevoegen?">
+<!ENTITY name.label "Naam:">
+<!ENTITY from.label "Van:">
+<!ENTITY webAddress.label "Webadres:">
+<!ENTITY type.label "Type:">
+<!ENTITY makeDefault.label "Dit mijn standaardaanbieder maken voor dit soort activiteiten">
+<!ENTITY addProvider.label "Aanbieder toevoegen">
+<!ENTITY displayActivityButton.label "Activiteitenknop bij selectie weergeven">

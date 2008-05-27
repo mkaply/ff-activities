@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Firefox Activities">
+<!ENTITY activities.label "Provider d&apos;attività">
+<!ENTITY moreActivities.label "Firefox Activities">
+<!ENTITY findMoreActivities.label "Trova provider attività...">
+<!ENTITY manageActivities.label "Gestione provider...">
+<!ENTITY manageActivitiesDialog.label "Gestione dei provider">
+<!ENTITY nameColumn.label "Nome">
+<!ENTITY addressColumn.label "Indirizzo web">
+<!ENTITY categoryColumn.label "Categoria">
+<!ENTITY statusColumn.label "Stato">
+<!ENTITY enable.label "Attiva">
+<!ENTITY disable.label "Disattiva">
+<!ENTITY setDefault.label "Imposta come predefinito">
+<!ENTITY removeDefault.label "Annulla come predefinito">
+<!ENTITY delete.label "Elimina">
+<!ENTITY addMessage.description "Aggiungere il seguente provider di attività?">
+<!ENTITY name.label "Nome:">
+<!ENTITY from.label "Da:">
+<!ENTITY webAddress.label "Indirizzo web:">
+<!ENTITY type.label "Tipo:">
+<!ENTITY makeDefault.label "Rendi il provider quello predefinito per questo tipo di attività">
+<!ENTITY addProvider.label "Aggiungi provider">
+<!ENTITY displayActivityButton.label "Visualizza il pulsante di attività durante la selezione">

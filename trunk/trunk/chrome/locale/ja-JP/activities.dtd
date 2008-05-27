@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Activities">
+<!ENTITY activities.label "Activities">
+<!ENTITY moreActivities.label "追加の Activities">
+<!ENTITY findMoreActivities.label "追加の Activities を検索...">
+<!ENTITY manageActivities.label "Activities を管理...">
+<!ENTITY manageActivitiesDialog.label "Activities の管理">
+<!ENTITY nameColumn.label "名前">
+<!ENTITY addressColumn.label "アドレス">
+<!ENTITY categoryColumn.label "カテゴリ">
+<!ENTITY statusColumn.label "状態">
+<!ENTITY enable.label "有効">
+<!ENTITY disable.label "無効">
+<!ENTITY setDefault.label "既定として設定">
+<!ENTITY removeDefault.label "既定の除去">
+<!ENTITY delete.label "削除">
+<!ENTITY addMessage.description "この Activity プロバイダを追加しますか？">
+<!ENTITY name.label "名前:">
+<!ENTITY from.label "提供元:">
+<!ENTITY webAddress.label "Web アドレス:">
+<!ENTITY type.label "種類:">
+<!ENTITY makeDefault.label "この Activity の種類に関する既定のプロバイダにする">
+<!ENTITY addProvider.label "プロバイダを追加">
+<!ENTITY displayActivityButton.label "選択時に Activity を表示する">

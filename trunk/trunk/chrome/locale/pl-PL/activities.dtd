@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Firefox Activities">
+<!ENTITY activities.label "Usługi">
+<!ENTITY moreActivities.label "Więcej usług">
+<!ENTITY findMoreActivities.label "Znajdź więcej usług...">
+<!ENTITY manageActivities.label "Zarządzaj usługami...">
+<!ENTITY manageActivitiesDialog.label "Zarządzanie usługami">
+<!ENTITY nameColumn.label "Nazwa">
+<!ENTITY addressColumn.label "Adres URL">
+<!ENTITY categoryColumn.label "Kategoria">
+<!ENTITY statusColumn.label "Status">
+<!ENTITY enable.label "Włącz">
+<!ENTITY disable.label "Wyłącz">
+<!ENTITY setDefault.label "Ustaw status domyślnej">
+<!ENTITY removeDefault.label "Usuń status domyślnej">
+<!ENTITY delete.label "Usuń">
+<!ENTITY addMessage.description "Czy chcesz dodać tego dostawcę usług?">
+<!ENTITY name.label "Nazwa:">
+<!ENTITY from.label "Z:">
+<!ENTITY webAddress.label "Adres URL:">
+<!ENTITY type.label "Typ:">
+<!ENTITY makeDefault.label "Ustaw jako domyślnego dostawcę tego typu usług">
+<!ENTITY addProvider.label "Dodaj">
+<!ENTITY displayActivityButton.label "Wyświetlaj przycisk usług na zaznaczeniu">
