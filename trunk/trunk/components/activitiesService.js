@@ -41,7 +41,12 @@ function isValidService(doc) {
   var ns = "http://www.microsoft.com/schemas/openservicedescription/1.0";
 
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);	  
+                            .getService(Components.interfaces.nsIIOService);
+  if (Components.interfaces.nsIEffectiveTLDService) {
+    var eTLDService = Components.classes["@mozilla.org/network/effective-tld-service;1"]
+                                 .getService(Components.interfaces.nsIEffectiveTLDService);
+  }
+
 
   var openServiceDescriptions = doc.getElementsByTagNameNS(ns, "openServiceDescription");
   if (openServiceDescriptions.length != 1) {
@@ -56,8 +61,12 @@ function isValidService(doc) {
     return false;
   }
   var homepageUrl = homepageUrls[0].textContent.replace(/^\s*|\s*$/g,'');
+  var homepageHost;
   try {
     var homepageHost = ioService.newURI(homepageUrl, null, null).host;
+    if (eTLDService) {
+      homepageHost = eTLDService.getBaseDomainFromHost(homepageHost);
+    }
   } catch (ex) {
     return false;
   }
