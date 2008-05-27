@@ -1,6 +1,5 @@
 overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/activities.xul
 overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/preview.xul appversion>=3 appversion=3.0b5 appversion=3.0b4 appversion=3.0b3 appversion=3.0b2 appversion=3.0b1
 content	msft_activities chrome/content/
-content	openservice chrome/content/openService/
+content	openService chrome/content/openService/
 locale  msft_activities en-US chrome/locale/en-US/
-locale  openservice en-US chrome/locale/en-US/openService/
