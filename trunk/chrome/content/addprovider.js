@@ -26,7 +26,7 @@ function onLoad() {
                       .createInstance(Components.interfaces.nsIConverterInputStream);
 
   fileInStream.init(window.arguments[0], MODE_RDONLY, PERMS_FILE, false);
-  cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+  cis.init(fileInStream,  null, window.arguments[0].fileSize, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
   var xmlFile = {value:null};
   cis.readString(window.arguments[0].fileSize, xmlFile);
   cis.close();
