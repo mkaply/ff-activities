@@ -156,7 +156,9 @@
         for (let j=1; j<=parameters.length; j++) {
           serviceObject["Action"+i].preview["Parameter"+j] = {};
           serviceObject["Action"+i].preview["Parameter"+j].Name = parameters[j-1].getAttribute("name").replace(/^\s*|\s*$/g,'');
-          serviceObject["Action"+i].preview["Parameter"+j].Value = parameters[j-1].getAttribute("value").replace(/^\s*|\s*$/g,'');
+          if (parameters[j-1].hasAttribute("value")) {
+            serviceObject["Action"+i].preview["Parameter"+j].Value = parameters[j-1].getAttribute("value").replace(/^\s*|\s*$/g,'');
+          }
           if (parameters[j-1].hasAttribute("type")) {
             serviceObject["Action"+i].preview["Parameter"+j].Type = parameters[j-1].getAttribute("type").replace(/^\s*|\s*$/g,'');
           }
@@ -181,7 +183,9 @@
       for (let j=1; j<=parameters.length; j++) {
         serviceObject["Action"+i].execute["Parameter"+j] = {};
         serviceObject["Action"+i].execute["Parameter"+j].Name = parameters[j-1].getAttribute("name").replace(/^\s*|\s*$/g,'');
-        serviceObject["Action"+i].execute["Parameter"+j].Value = parameters[j-1].getAttribute("value").replace(/^\s*|\s*$/g,'');
+        if (parameters[j-1].hasAttribute("value")) {
+          serviceObject["Action"+i].execute["Parameter"+j].Value = parameters[j-1].getAttribute("value").replace(/^\s*|\s*$/g,'');
+        }
         if (parameters[j-1].hasAttribute("type")) {
           serviceObject["Action"+i].execute["Parameter"+j].Type = parameters[j-1].getAttribute("type").replace(/^\s*|\s*$/g,'');
         }
@@ -321,7 +325,7 @@
                             .getService(Components.interfaces.nsIObserverService);
     observerService.removeObserver(openServiceObserver, "openService");
     /* Remove page context menu listener */
-    var menu = document.geotElementById("contentAreaContextMenu");
+    var menu = document.getElementById("contentAreaContextMenu");
     menu.removeEventListener("popupshowing",
                              function(event){ contextPopupShowing(event)},
                              false);
