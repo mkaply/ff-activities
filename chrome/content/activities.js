@@ -42,11 +42,16 @@
 
         var fileInStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                      .createInstance(Components.interfaces.nsIFileInputStream);
+        var cis = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                            .createInstance(Components.interfaces.nsIConverterInputStream);
+
         fileInStream.init(sourcefile, MODE_RDONLY, PERMS_FILE, false);
-        var doc = domParser.parseFromStream(fileInStream, "UTF-8",
-                                            sourcefile.fileSize,
-                                           "text/xml");
-        fileInStream.close();
+        cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+        var xmlFile = {value:null};
+        cis.readString(sourcefile.fileSize, xmlFile);
+        cis.close();
+
+        var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
 
         var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
         var homepageUrl = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0]
@@ -216,11 +221,17 @@
 
             var fileInStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                          .createInstance(Components.interfaces.nsIFileInputStream);
+            var cis = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                                .createInstance(Components.interfaces.nsIConverterInputStream);
+
             fileInStream.init(sourcefile, MODE_RDONLY, PERMS_FILE, false);
-            var doc = domParser.parseFromStream(fileInStream, "UTF-8",
-                                                sourcefile.fileSize,
-                                               "text/xml");
-            fileInStream.close();
+            cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+            var xmlFile = {value:null};
+            cis.readString(sourcefile.fileSize, xmlFile);
+            cis.close();
+
+            var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
+
             var serviceObject = serviceObjectFromDocument(doc);
             if (!services[serviceObject.Verb]) {
               services[serviceObject.Verb] = {}; 

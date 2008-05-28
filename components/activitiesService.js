@@ -225,19 +225,23 @@ function (filename)
       /* Open downloaded file and parse it so we can check for errors */
       var fileInStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                     .createInstance(Components.interfaces.nsIFileInputStream);
+      var cis = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                          .createInstance(Components.interfaces.nsIConverterInputStream);
       fileInStream.init(result, MODE_RDONLY, PERMS_FILE, false);
+      cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+      var xmlFile = {value:null};
+      cis.readString(result.fileSize, xmlFile);
+      cis.close();
+
       var domParser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
                                 .createInstance(Components.interfaces.nsIDOMParser);
       var error = false;
       var securityerror = false;
       try {
-        var doc = domParser.parseFromStream(fileInStream, "UTF-8",
-                                            result.fileSize,
-                                            "text/xml");
+        var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
       } catch (ex) {
         securityerror = true;
       }
-      fileInStream.close();
 
       securityerror = !isValidService(doc);
 

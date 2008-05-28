@@ -22,15 +22,20 @@ function onLoad() {
 
   var fileInStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                .createInstance(Components.interfaces.nsIFileInputStream);
+  var cis = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                      .createInstance(Components.interfaces.nsIConverterInputStream);
+
   fileInStream.init(window.arguments[0], MODE_RDONLY, PERMS_FILE, false);
+  cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+  var xmlFile = {value:null};
+  cis.readString(window.arguments[0].fileSize, xmlFile);
+  cis.close();
+
 
   var domParser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
                             .createInstance(Components.interfaces.nsIDOMParser);
-
-  var doc = domParser.parseFromStream(fileInStream, "UTF-8",
-                                      window.arguments[0].fileSize,
-                                      "text/xml");
-  fileInStream.close();
+                            
+  var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
 
   var homepageUrl = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0]
   var activity = doc.getElementsByTagNameNS(namespaceURI, "activity")[0]
