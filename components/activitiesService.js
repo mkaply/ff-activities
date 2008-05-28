@@ -228,7 +228,7 @@ function (filename)
       var cis = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
                           .createInstance(Components.interfaces.nsIConverterInputStream);
       fileInStream.init(result, MODE_RDONLY, PERMS_FILE, false);
-      cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+      cis.init(fileInStream,  null, result.fileSize, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
       var xmlFile = {value:null};
       cis.readString(result.fileSize, xmlFile);
       cis.close();
