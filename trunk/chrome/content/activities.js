@@ -46,7 +46,7 @@
                             .createInstance(Components.interfaces.nsIConverterInputStream);
 
         fileInStream.init(sourcefile, MODE_RDONLY, PERMS_FILE, false);
-        cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+        cis.init(fileInStream,  null, sourcefile.fileSize, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
         var xmlFile = {value:null};
         cis.readString(sourcefile.fileSize, xmlFile);
         cis.close();
@@ -229,7 +229,7 @@
                                 .createInstance(Components.interfaces.nsIConverterInputStream);
 
             fileInStream.init(sourcefile, MODE_RDONLY, PERMS_FILE, false);
-            cis.init(fileInStream,  null, 1024, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+            cis.init(fileInStream,  null, sourcefile.fileSize, Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
             var xmlFile = {value:null};
             cis.readString(sourcefile.fileSize, xmlFile);
             cis.close();
@@ -654,39 +654,32 @@
         if (!activity.Enabled) {
           continue;
         }
-        var CurrentAction = 0;
         /* check action contexts before creating menu */
         for (let k=1; k <= activity.ActionCount; k++) {
           if (activity["Action"+k].Context == popupContext) {
-            CurrentAction = k;
+            var tempMenu = document.createElement("menuitem");
+            tempMenu.label = activity.DisplayName;
+            tempMenu.setAttribute("label", tempMenu.label);
+            if (activity.Icon) {
+              tempMenu.image = activity.Icon;
+              tempMenu.setAttribute("image", tempMenu.image);
+            }
+            tempMenu["class"] = "menuitem-iconic";
+            tempMenu.setAttribute("class", tempMenu["class"]);
+            tempMenu.activity = data;
+            tempMenu.action = activity["Action"+k];
+            tempMenu.addEventListener("command",
+                                      function(event){execute(event)},
+                                      true);
+            tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
+            tempMenu.addEventListener("mouseover",
+                                      function(event){execute(event, {preview:true})},
+                                      true);
+            event.target.insertBefore(tempMenu, document.getElementById("find-more-activities"));
+            addSeparator = true;
             break;
           }
         }
-        /* Check enabled later */
-        if (CurrentAction == 0) {
-          continue;
-        }
-
-        var tempMenu = document.createElement("menuitem");
-        tempMenu.label = activity.DisplayName;
-        tempMenu.setAttribute("label", tempMenu.label);
-        if (activity.Icon) {
-          tempMenu.image = activity.Icon;
-          tempMenu.setAttribute("image", tempMenu.image);
-        }
-        tempMenu["class"] = "menuitem-iconic";
-        tempMenu.setAttribute("class", tempMenu["class"]);
-        tempMenu.activity = data;
-        tempMenu.action = activity["Action"+CurrentAction];
-        tempMenu.addEventListener("command",
-                                  function(event){execute(event)},
-                                  true);
-        tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
-        tempMenu.addEventListener("mouseover",
-                                  function(event){execute(event, {preview:true})},
-                                  true);
-        event.target.insertBefore(tempMenu, document.getElementById("find-more-activities"));
-        addSeparator = true;
       }
       if (addSeparator) {
         event.target.insertBefore(document.createElement("menuseparator"), document.getElementById("find-more-activities"));
