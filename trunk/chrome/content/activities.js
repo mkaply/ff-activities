@@ -161,6 +161,8 @@
           }
           if (parameters[j-1].hasAttribute("type")) {
             serviceObject["Action"+i].preview["Parameter"+j].Type = parameters[j-1].getAttribute("type").replace(/^\s*|\s*$/g,'');
+          } else {
+            serviceObject["Action"+i].preview["Parameter"+j].Type = "text";
           }
         }
       }
@@ -188,6 +190,8 @@
         }
         if (parameters[j-1].hasAttribute("type")) {
           serviceObject["Action"+i].execute["Parameter"+j].Type = parameters[j-1].getAttribute("type").replace(/^\s*|\s*$/g,'');
+        } else {
+          serviceObject["Action"+i].execute["Parameter"+j].Type = "text";
         }
       }
     }
@@ -356,15 +360,20 @@
 
     }
   }
-  function doSubstitution(instring, data) {
+  function doSubstitution(instring, data, type) {
     var newstring = instring;
     newstring = newstring.replace("{documentTitle}", data.documentTitle);
     newstring = newstring.replace("{documentTitle?}", data.documentTitle);
     newstring = newstring.replace("{documentUrl}", data.documentUrl);
     newstring = newstring.replace("{documentUrl?}", data.documentUrl);
     if (data.context == "selection") {
-      newstring = newstring.replace("{selection}", data.selection);
-      newstring = newstring.replace("{selection?}", data.selection);
+      if (type == "html") {
+        newstring = newstring.replace("{selection}", data.selectionHTML);
+        newstring = newstring.replace("{selection?}", data.selectionHTML);
+      } else {
+        newstring = newstring.replace("{selection}", data.selection);
+        newstring = newstring.replace("{selection?}", data.selection);
+      }
     }
     if (data.context == "link") {
       newstring = newstring.replace("{linkText}", data.linkText);
@@ -422,7 +431,7 @@
       if (query.length != 0) {
         query += "&";
       }
-      var Value = doSubstitution(action["Parameter"+i].Value, activity);
+      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Parameter"+i].Type);
       if (Value.length > 0) {
         query += action["Parameter"+i].Name;
         query += "=";
@@ -543,7 +552,11 @@
       data.linkText = gContextMenu.linkText.call(gContextMenu);
     } else if (gContextMenu.isContentSelection()) {
       popupContext = "selection";
-      data.selection = encodeURIComponent(document.commandDispatcher.focusedWindow.getSelection().toString());
+      var selection = document.commandDispatcher.focusedWindow.getSelection();
+      data.selection = encodeURIComponent(selection.toString());
+      var div = content.document.createElement("div");
+      div.appendChild(selection.getRangeAt(0).cloneContents());
+      data.selectionHTML = encodeURIComponent(div.innerHTML);
 //    } else if (mfNode = isAdr(gContextMenu.target)) {
 //      data.microformat =  new adr(mfNode);
 //      popupContext = "adr";
