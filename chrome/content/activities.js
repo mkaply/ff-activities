@@ -125,7 +125,7 @@
     serviceObject.Verb = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
     /* Check if the activity is disabled in preferences */
     try {
-      serviceObject.Enabled = !prefBranch.getBoolPref(serviceObject.Verb + "." + serviceObject.Domain + ".disabled");
+      serviceObject.Enabled = !prefBranch.getBoolPref(encodeURIComponent(serviceObject.Verb) + "." + serviceObject.Domain + ".disabled");
     } catch (ex) {
       serviceObject.Enabled = true;
     }
@@ -277,10 +277,14 @@
             }
             data = data.replace(/.disabled$/, "");
             var dataArray = data.split(".");
-            var Verb = dataArray[0];
+            var Verb = decodeURI(dataArray[0]);
             dataArray.splice(0,1);
             var Host = dataArray.join(".");
-            services[Verb][Host].Enabled = !Enabled;
+            try {
+              services[Verb][Host].Enabled = !Enabled;
+            } catch (ex) {
+              alert(Verb);
+            }
           }
         }
       }
@@ -570,7 +574,7 @@
 
     for (let i in services) {
       try {
-        var DefaultActivity = prefBranch.getCharPref(i + ".DefaultActivity");
+        var DefaultActivity = prefBranch.getCharPref(encodeURI(i) + ".DefaultActivity");
         /* If the activity isn't enabled, ignore it */
         var curActivity = services[i][DefaultActivity];
         if (!curActivity.Enabled) {

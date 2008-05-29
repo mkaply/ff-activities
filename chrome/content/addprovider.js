@@ -68,7 +68,7 @@ function onLoad() {
       var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService)
                                                                .getBranch("extensions.activities.");
       try {
-        var DefaultActivity = prefBranch.getCharPref(category + ".DefaultActivity");
+        var DefaultActivity = prefBranch.getCharPref(encodeURI(category) + ".DefaultActivity");
         if (DefaultActivity == host) {
           document.getElementById("makeDefault").checked = true;
           document.getElementById("makeDefault").disabled = true;
@@ -134,7 +134,7 @@ function onAccept() {
                              .getBranch("extensions.activities.");
 
   if (document.getElementById("makeDefault").checked) {
-    prefBranch.setCharPref(category + ".DefaultActivity", host);
+    prefBranch.setCharPref(encodeURI(category) + ".DefaultActivity", host);
   }
   Components.classes["@mozilla.org/observer-service;1"]
             .getService(Components.interfaces.nsIObserverService)
