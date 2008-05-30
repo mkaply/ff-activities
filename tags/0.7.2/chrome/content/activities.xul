@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE activities2 SYSTEM "chrome://msft_activities/locale/activities.dtd">
+<overlay id="operator" 
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/activities.js"/>
+  <popup id="contentAreaContextMenu">
+    <menuseparator id="activities-separator"/>
+    <menu id="activities-menu" label="&moreActivities.label;">
+      <menupopup id="activities-menupopup">
+        <menuitem id="find-more-activities" label="&findMoreActivities.label;"
+                  oncommand="openUILink('http://ie.microsoft.com/activities/en-en/default.aspx', event);"
+                  onclick="openUILink('http://ie.microsoft.com/activities/en-en/default.aspx', event);if (event.button == 1) {closeMenus(event.target);}"
+                  onmouseover="var popup = document.getElementById('activities-preview-panel');if (popup) {popup.hidePopup()};"/>
+        <menuitem id="manage-activities" label="&manageActivities.label;"
+                  oncommand="window.openDialog('chrome://msft_activities/content/manage_activities.xul','manage_activities','chrome,centerscreen,modal,resizable=yes');"
+                  onmouseover="var popup = document.getElementById('activities-preview-panel');if (popup) {popup.hidePopup()};"/>
+      </menupopup>
+    </menu>
+  </popup>
+</overlay>

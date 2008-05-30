@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Firefox Activities">
+<!ENTITY activities.label "Aktivity">
+<!ENTITY moreActivities.label "Více aktivit">
+<!ENTITY findMoreActivities.label "Najít více aktivit...">
+<!ENTITY manageActivities.label "Spravovat aktivity...">
+<!ENTITY manageActivitiesDialog.label "Správa aktivit">
+<!ENTITY nameColumn.label "Jméno">
+<!ENTITY addressColumn.label "Adresa">
+<!ENTITY categoryColumn.label "Kategorie">
+<!ENTITY statusColumn.label "Status">
+<!ENTITY enable.label "Povolit">
+<!ENTITY disable.label "Zakázat">
+<!ENTITY setDefault.label "Nastavit jako výchozí">
+<!ENTITY removeDefault.label "Odebrat jako výchozí">
+<!ENTITY delete.label "Smazat">
+<!ENTITY addMessage.description "Chcete přidat tento zdroj aktivit?">
+<!ENTITY name.label "Jméno:">
+<!ENTITY from.label "Od:">
+<!ENTITY webAddress.label "Webová adresa:">
+<!ENTITY type.label "Typ:">
+<!ENTITY makeDefault.label "Nastavit tento zdroj aktivit jako výchozí pro tuto aktivitu">
+<!ENTITY addProvider.label "Přidat zdroj aktivit">
+<!ENTITY displayActivityButton.label "Zobrazit tlačítko aktivit při výběru">

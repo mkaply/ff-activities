@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Activities">
+<!ENTITY activities.label "Activities">
+<!ENTITY moreActivities.label "More Activities">
+<!ENTITY findMoreActivities.label "Find More Activities...">
+<!ENTITY manageActivities.label "Manage Activities...">
+<!ENTITY manageActivitiesDialog.label "Manage Activities">
+<!ENTITY nameColumn.label "Navn">
+<!ENTITY addressColumn.label "Address">
+<!ENTITY categoryColumn.label "Category">
+<!ENTITY statusColumn.label "Status">
+<!ENTITY enable.label "Aktiver">
+<!ENTITY disable.label "Deaktiver">
+<!ENTITY setDefault.label "Set As Default">
+<!ENTITY removeDefault.label "Remove as Default">
+<!ENTITY delete.label "Slet">
+<!ENTITY addMessage.description "Do you want to add this activity provider?">
+<!ENTITY name.label "Navn:">
+<!ENTITY from.label "Fra:">
+<!ENTITY webAddress.label "Web address:">
+<!ENTITY type.label "Type:">
+<!ENTITY makeDefault.label "Make this my default provider for this type of activity">
+<!ENTITY addProvider.label "Add Provider">
+<!ENTITY displayActivityButton.label "Display Activity button on selection">
