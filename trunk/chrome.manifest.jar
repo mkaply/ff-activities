@@ -1,7 +1,6 @@
 overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/activities.xul
 overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/preview.xul appversion>=3 appversion=3.0pre appversion=3.0b5 appversion=3.0b4 appversion=3.0b3 appversion=3.0b2 appversion=3.0b1
 content	msft_activities jar:chrome/activities.jar!/content/
-content	openService jar:chrome/activities.jar!/content/openService/
 locale  msft_activities en-US jar:chrome/activities.jar!/locale/en-US/
 locale  msft_activities cs-CZ jar:chrome/activities.jar!/locale/cs-CZ/
 locale  msft_activities de-DE jar:chrome/activities.jar!/locale/de-DE/

@@ -1,5 +1,14 @@
 overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/activities.xul
-overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/preview.xul appversion>=3 appversion=3.0b5 appversion=3.0b4 appversion=3.0b3 appversion=3.0b2 appversion=3.0b1
+overlay	chrome://browser/content/browser.xul	chrome://msft_activities/content/preview.xul appversion>=3
 content	msft_activities chrome/content/
-content	openService chrome/content/openService/
 locale  msft_activities en-US chrome/locale/en-US/
+locale  msft_activities cs-CZ chrome/locale/cs-CZ/
+locale  msft_activities de-DE chrome/locale/de-DE/
+locale  msft_activities fr-FR chrome/locale/fr-FR/
+locale  msft_activities it-IT chrome/locale/it-IT/
+locale  msft_activities ja-JP chrome/locale/ja-JP/
+locale  msft_activities nl-NL chrome/locale/nl-NL/
+locale  msft_activities pl-PL chrome/locale/pl-PL/
+locale  msft_activities da-DK chrome/locale/da-DK/
+locale  msft_activities pt-BR chrome/locale/pt-BR/
+locale  msft_activities zh-TW chrome/locale/zh-TW/

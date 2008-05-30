@@ -1,0 +1,1 @@
+pref("extensions.activities@kaply.com.description", "chrome://msft_activities/locale/activities.properties");
