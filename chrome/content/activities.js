@@ -322,7 +322,7 @@
                             false);
     var menupopup = document.getElementById("activities-menupopup");
     menupopup.addEventListener("popupshowing",
-                          function(event){ generatePopup(event)},
+                          function(event){ contextPopupShowing(event)},
                           false);
   }
   /* This function handles the window closing piece, removing listeners and observers */
@@ -339,7 +339,7 @@
                              false);
     var menupopup = document.getElementById("activities-menupopup");
     menupopup.removeEventListener("popupshowing",
-                          function(event){ generatePopup(event)},
+                          function(event){ contextPopupShowing(event)},
                           false);
   }
   /* if it is a post, set src to about:blank and do the post in the load listener */
@@ -538,8 +538,35 @@
     }
     return false;
   }
+  function addMenu(activity, data, popupContext, menu, event) {
+    for (let j=1; j <= activity.ActionCount; j++) {
+      if (activity["Action"+j].Context == popupContext) {
+        var tempMenu = document.createElement("menuitem");
+        tempMenu.label = activity.DisplayName;
+        tempMenu.setAttribute("label", tempMenu.label);
+        if (activity.Icon) {
+          tempMenu.image = activity.Icon;
+          tempMenu.setAttribute("image", tempMenu.image);
+        }
+        tempMenu["class"] = "menuitem-iconic";
+        tempMenu.setAttribute("class", tempMenu["class"]);
+        tempMenu.activity = data;
+        tempMenu.action = activity["Action"+j];
+        tempMenu.addEventListener("command",
+                                  function(event){execute(event)},
+                                  true);
+        tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
+        tempMenu.addEventListener("mouseover",
+                                  function(event){execute(event, {preview:true})},
+                                  true);
+        event.target.insertBefore(tempMenu, menu);
+        return true;
+      }
+    }
+    return false;
+  }
   function contextPopupShowing(event) {
-    if (event.target.id != "contentAreaContextMenu") {
+    if ((event.target.id != "contentAreaContextMenu") && (event.target.id != "activities-menupopup")) {
       return;
     }
     /* context can be selection, document or link */
@@ -567,139 +594,65 @@
     data.documentUrl = content.document.location.href;
     data.context = popupContext;
 
-    var ioServ = Components.classes["@mozilla.org/network/io-service;1"]
-                           .getService(Components.interfaces.nsIIOService);
-    var tempfile = Components.classes["@mozilla.org/file/local;1"]
-                             .createInstance(Components.interfaces.nsILocalFile);
-
-    /* Remove existing menuitems */
-    var separator = document.getElementById("activities-separator");
-    while (separator.nextSibling && (separator.nextSibling.id != "activities-menu")) {
-      separator.nextSibling.removeEventListener("command",
-                                                function(event){execute(event)},
-                                                true);
-      separator.nextSibling.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-      separator.nextSibling.removeEventListener("mouseover",
-                                                function(event){execute(event, {preview:true})},
-                                                true);
-      separator.nextSibling.parentNode.removeChild(separator.nextSibling);
-    }
-
-    for (let i in services) {
-      try {
-        var DefaultActivity = prefBranch.getCharPref(encodeURI(i) + ".DefaultActivity");
-        /* If the activity isn't enabled, ignore it */
-        var curActivity = services[i][DefaultActivity];
-        if (!curActivity.Enabled) {
-          continue;
-        }
-        for (let j=1; j <= curActivity.ActionCount; j++) {
-          if (curActivity["Action"+j].Context == popupContext) {
-            var tempMenu = document.createElement("menuitem");
-            tempMenu.id = "activities-" + i;
-            tempMenu.label = curActivity.DisplayName;
-            tempMenu.setAttribute("label", tempMenu.label);
-            if (curActivity.Icon) {
-              tempMenu.image = curActivity.Icon;
-              tempMenu.setAttribute("image", tempMenu.image);
-            }
-            tempMenu["class"] = "menuitem-iconic";
-            tempMenu.setAttribute("class", tempMenu["class"]);
-            tempMenu.activity = data;
-            tempMenu.action = curActivity["Action"+j];
-            tempMenu.addEventListener("command",
-                                      function(event){execute(event)},
-                                      true);
-            tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
-            tempMenu.addEventListener("mouseover",
-                                      function(event){execute(event, {preview:true})},
-                                      true);
-            event.target.insertBefore(tempMenu, document.getElementById("activities-menu"));
-            break;
-          }
-        }
-      } catch (ex) {
-        /* No default activity specified for this activity category */
+    if (event.target.id == "contentAreaContextMenu") {
+      /* Remove existing menuitems */
+      var separator = document.getElementById("activities-separator");
+      while (separator.nextSibling && (separator.nextSibling.id != "activities-menu")) {
+        separator.nextSibling.removeEventListener("command",
+                                                  function(event){execute(event)},
+                                                  true);
+        separator.nextSibling.removeEventListener("click", function(event){execute(event, {click:true})}, true);
+        separator.nextSibling.removeEventListener("mouseover",
+                                                  function(event){execute(event, {preview:true})},
+                                                  true);
+        separator.nextSibling.parentNode.removeChild(separator.nextSibling);
       }
-    }
-  }
-  function generatePopup(event) {
-    var menupopup = event.target;
-    for(let i=menupopup.childNodes.length - 1; i >= 0; i--) {
-      if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
-           (menupopup.childNodes.item(i).id != "manage-activities")) {
-        menupopup.removeEventListener("command",
-                                      function(event){execute(event)},
-                                      true);
-        menupopup.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-        menupopup.removeEventListener("mouseover",
-                                  function(event){execute(event, {preview:true})},
-                                  true);
-        menupopup.removeChild(menupopup.childNodes.item(i));
-      }
-    }
-    /* context can be selection, document or link */
-    var popupContext;
-    var data = {};
-    var mfNode;
-    if (gContextMenu.onLink) {
-      popupContext = "link";
-      data.link = gContextMenu.linkURL;
-      data.linkText = gContextMenu.linkText.call(gContextMenu);
-    } else if (gContextMenu.isContentSelection()) {
-      popupContext = "selection";
-      data.selection = encodeURIComponent(document.commandDispatcher.focusedWindow.getSelection().toString());
-//    } else if (mfNode = isAdr(gContextMenu.target)) {
-//      data.microformat =  new adr(mfNode);
-//      popupContext = "adr";
     } else {
-      popupContext = "document";
-    }
-    data.documentTitle = content.document.title;
-    data.documentUrl = content.document.location.href;
-    data.context = popupContext;
-
-    var ioServ = Components.classes["@mozilla.org/network/io-service;1"]
-                           .getService(Components.interfaces.nsIIOService);
-    var tempfile = Components.classes["@mozilla.org/file/local;1"]
-                             .createInstance(Components.interfaces.nsILocalFile);
-
-    for (let i in services) {
-      var addSeparator = false;
-      for (let activity_name in services[i]) {
-        var activity = services[i][activity_name];
-        if (!activity.Enabled) {
-          continue;
-        }
-        /* check action contexts before creating menu */
-        for (let k=1; k <= activity.ActionCount; k++) {
-          if (activity["Action"+k].Context == popupContext) {
-            var tempMenu = document.createElement("menuitem");
-            tempMenu.label = activity.DisplayName;
-            tempMenu.setAttribute("label", tempMenu.label);
-            if (activity.Icon) {
-              tempMenu.image = activity.Icon;
-              tempMenu.setAttribute("image", tempMenu.image);
-            }
-            tempMenu["class"] = "menuitem-iconic";
-            tempMenu.setAttribute("class", tempMenu["class"]);
-            tempMenu.activity = data;
-            tempMenu.action = activity["Action"+k];
-            tempMenu.addEventListener("command",
-                                      function(event){execute(event)},
-                                      true);
-            tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
-            tempMenu.addEventListener("mouseover",
-                                      function(event){execute(event, {preview:true})},
-                                      true);
-            event.target.insertBefore(tempMenu, document.getElementById("find-more-activities"));
-            addSeparator = true;
-            break;
-          }
+      var menupopup = event.target;
+      for(let i=menupopup.childNodes.length - 1; i >= 0; i--) {
+        if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
+             (menupopup.childNodes.item(i).id != "manage-activities")) {
+          menupopup.removeEventListener("command",
+                                        function(event){execute(event)},
+                                        true);
+          menupopup.removeEventListener("click", function(event){execute(event, {click:true})}, true);
+          menupopup.removeEventListener("mouseover",
+                                    function(event){execute(event, {preview:true})},
+                                    true);
+          menupopup.removeChild(menupopup.childNodes.item(i));
         }
       }
-      if (addSeparator) {
-        event.target.insertBefore(document.createElement("menuseparator"), document.getElementById("find-more-activities"));
+    }
+
+    if (event.target.id == "contentAreaContextMenu") {
+      for (let i in services) {
+        try {
+          var DefaultActivity = prefBranch.getCharPref(encodeURI(i) + ".DefaultActivity");
+          /* If the activity isn't enabled, ignore it */
+          if (!services[i][DefaultActivity].Enabled) {
+            continue;
+          }
+          addMenu(services[i][DefaultActivity], data, popupContext,
+                  document.getElementById("activities-menu"), event);
+        } catch (ex) {
+          /* No default activity specified for this activity category */
+        }
+      }
+    } else {
+      for (let i in services) {
+        var addSeparator = false;
+        for (let activity_name in services[i]) {
+          var activity = services[i][activity_name];
+          if (!activity.Enabled) {
+            continue;
+          }
+          addSeparator = addMenu(activity, data, popupContext,
+                                 document.getElementById("find-more-activities"), event);
+        }
+        if (addSeparator) {
+          event.target.insertBefore(document.createElement("menuseparator"),
+                                    document.getElementById("find-more-activities"));
+        }
       }
     }
   }
