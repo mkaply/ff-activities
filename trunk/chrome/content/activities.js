@@ -721,7 +721,7 @@
       }
       
       if ((popupContext == "selection")  && !addedSearch) {
-        addSearch(data, popupContext, document.getElementById("activities-menu"), event);
+        addSearch(ss.defaultEngine, data, document.getElementById("activities-menu"), event);
       }
     } else {
       var prevService;
