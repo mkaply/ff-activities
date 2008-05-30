@@ -2,11 +2,11 @@
 
     <Description about="urn:mozilla:install-manifest">
         <em:id>activities@kaply.com</em:id>
-        <em:name>Firefox Activities</em:name>
+        <em:name>IE8 Activities for Firefox</em:name>
         <em:version>0.7.2</em:version>
         <em:description></em:description>
         <em:creator>Michael Kaply</em:creator>
-        <em:description>An implementation of IE8 Activities for Firefox</em:description>
+        <em:description></em:description>
         <em:iconURL>chrome://msft_activities/content/activities.png</em:iconURL>
         <!-- Firefox -->
         <em:targetApplication>
