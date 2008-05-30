@@ -105,9 +105,10 @@ function isValidService(doc) {
     var activityAction = activityActions[i];
     if (activityAction.hasAttribute("context")) {
       var context = activityAction.getAttribute("context").replace(/^\s*|\s*$/g,'');
-      if (!contexts[context]) {
-        return false;
-      }
+// @TODO - check for specifically valid contexts
+//      if (!contexts[context]) {
+//        return false;
+//      }
     }
     var executes = activityAction.getElementsByTagNameNS(ns, "execute");
     if (executes.length == 0) {
