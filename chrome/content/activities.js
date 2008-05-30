@@ -3,6 +3,7 @@
   var prefBranch = null;
   var prefObserver;
   var openServiceObserver;
+  var searchWithString;
   services = [];
   function migrate() {
     const MODE_RDONLY   = 0x01;
@@ -400,7 +401,7 @@
       var click = options.click;
     }
     if (preview && !document.getElementById("activities-preview-panel")) {
-      return
+      return;
     }
 
     /* Only handle click in the middle button case */
@@ -538,6 +539,64 @@
     }
     return false;
   }
+  
+  function executeSearch(event, options) {
+    if (options) {
+      var preview = options.preview;
+      var click = options.click;
+    }
+    if (preview && !document.getElementById("activities-preview-panel")) {
+      return;
+    }
+  
+    /* Only handle click in the middle button case */
+    if (click && (event.button != 1)) {
+      return;
+    }
+    if (preview) {
+      var popup = document.getElementById("activities-preview-panel");
+      if (popup) {
+        popup.hidePopup();
+      }
+      var iframe = document.getElementById("activities-preview-iframe");
+      if (iframe) {
+        iframe.src = "about:blank";
+        iframe.setAttribute("src", iframe.src);
+      }
+      return;
+    }
+    var selection = event.target.activity.selection;
+    var engine = event.target.engine;
+    var submission = engine.getSubmission(selection, null);
+    /* Might want to handle postData someday */
+    openUILink(submission.uri.spec, event);
+    if (click) {
+      closeMenus(event.target);
+    }
+  }
+  
+  function addSearch(engine, data, menu, event) {
+    var tempMenu = document.createElement("menuitem");
+    tempMenu.label = searchWithString.replace(/%S/,engine.name);
+    tempMenu.setAttribute("label", tempMenu.label);
+    if (engine.iconURI) {
+      tempMenu.image = engine.iconURI.spec;
+      tempMenu.setAttribute("image", tempMenu.image);
+    }
+    tempMenu["class"] = "menuitem-iconic";
+    tempMenu.setAttribute("class", tempMenu["class"]);
+    tempMenu.activity = data;
+    tempMenu.engine = engine;
+    tempMenu.addEventListener("command",
+                              function(event){executeSearch(event)},
+                              true);
+    tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
+    tempMenu.addEventListener("mouseover",
+                              function(event){executeSearch(event, {preview:true})},
+                              true);
+    event.target.insertBefore(tempMenu, menu);
+    return true;
+  }
   function addMenu(activity, data, popupContext, menu, event) {
     for (let j=1; j <= activity.ActionCount; j++) {
       if (activity["Action"+j].Context == popupContext) {
@@ -569,30 +628,6 @@
     if ((event.target.id != "contentAreaContextMenu") && (event.target.id != "activities-menupopup")) {
       return;
     }
-    /* context can be selection, document or link */
-    var popupContext;
-    var data = {};
-    var mfNode;
-    if (gContextMenu.onLink) {
-      popupContext = "link";
-      data.link = gContextMenu.linkURL;
-      data.linkText = gContextMenu.linkText.call(gContextMenu);
-    } else if (gContextMenu.isContentSelection()) {
-      popupContext = "selection";
-      var selection = document.commandDispatcher.focusedWindow.getSelection();
-      data.selection = encodeURIComponent(selection.toString());
-      var div = content.document.createElement("div");
-      div.appendChild(selection.getRangeAt(0).cloneContents());
-      data.selectionHTML = encodeURIComponent(div.innerHTML);
-//    } else if (mfNode = isAdr(gContextMenu.target)) {
-//      data.microformat =  new adr(mfNode);
-//      popupContext = "adr";
-    } else {
-      popupContext = "document";
-    }
-    data.documentTitle = content.document.title;
-    data.documentUrl = content.document.location.href;
-    data.context = popupContext;
 
     if (event.target.id == "contentAreaContextMenu") {
       /* Remove existing menuitems */
@@ -623,8 +658,47 @@
         }
       }
     }
+    
+    if ((gContextMenu.onImage) || (gContextMenu.onTextInput)) {
+      document.getElementById("activities-separator").hidden = true;;
+      document.getElementById("activities-menu").hidden = true;
+      return;
+    } else {
+      document.getElementById("activities-separator").hidden = false;
+      document.getElementById("activities-menu").hidden = false;
+    }
+
+    /* context can be selection, document or link */
+    var popupContext;
+    var data = {};
+    var mfNode;
+    if (gContextMenu.onLink) {
+      popupContext = "link";
+      data.link = gContextMenu.linkURL;
+      data.linkText = gContextMenu.linkText.call(gContextMenu);
+    } else if (gContextMenu.isContentSelection()) {
+      popupContext = "selection";
+      var selection = document.commandDispatcher.focusedWindow.getSelection();
+      data.selection = encodeURIComponent(selection.toString());
+      var div = content.document.createElement("div");
+      div.appendChild(selection.getRangeAt(0).cloneContents());
+      data.selectionHTML = encodeURIComponent(div.innerHTML);
+//    } else if (mfNode = isAdr(gContextMenu.target)) {
+//      data.microformat =  new adr(mfNode);
+//      popupContext = "adr";
+    } else {
+      popupContext = "document";
+    }
+    data.documentTitle = content.document.title;
+    data.documentUrl = content.document.location.href;
+    data.context = popupContext;
+
+    var ss = Components.classes["@mozilla.org/browser/search-service;1"]
+                       .getService(Components.interfaces.nsIBrowserSearchService);
 
     if (event.target.id == "contentAreaContextMenu") {
+      var prevService;
+      var addedSearch = false;
       for (let i in services) {
         try {
           var DefaultActivity = prefBranch.getCharPref(encodeURI(i) + ".DefaultActivity");
@@ -632,15 +706,40 @@
           if (!services[i][DefaultActivity].Enabled) {
             continue;
           }
+          if (!addedSearch && (popupContext == "selection") && (searchWithString < i)) {
+            if (!prevService || (searchWithString > prevService)) {
+              addSearch(ss.defaultEngine, data, document.getElementById("activities-menu"), event);
+              addedSearch = true;
+            }
+          }
           addMenu(services[i][DefaultActivity], data, popupContext,
                   document.getElementById("activities-menu"), event);
+          prevService = i;
         } catch (ex) {
           /* No default activity specified for this activity category */
         }
       }
+      
+      if ((popupContext == "selection")  && !addedSearch) {
+        addSearch(data, popupContext, document.getElementById("activities-menu"), event);
+      }
     } else {
+      var prevService;
+      var addedSearch = false;
       for (let i in services) {
         var addSeparator = false;
+          if (!addedSearch && (popupContext == "selection") && (searchWithString < i)) {
+            if (!prevService || (searchWithString > prevService)) {
+              /* Enumerate through search services and add each */
+              var engines = ss.getVisibleEngines({ });
+              for (let j=0; j < engines.length; j++) {
+                addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
+              }
+              event.target.insertBefore(document.createElement("menuseparator"),
+                                        document.getElementById("find-more-activities"));
+              addedSearch = true;
+            }
+          }
         for (let activity_name in services[i]) {
           var activity = services[i][activity_name];
           if (!activity.Enabled) {
@@ -650,9 +749,19 @@
                                  document.getElementById("find-more-activities"), event);
         }
         if (addSeparator) {
+          prevService = i;
           event.target.insertBefore(document.createElement("menuseparator"),
                                     document.getElementById("find-more-activities"));
         }
+      }
+      if ((popupContext == "selection")  && !addedSearch) {
+        /* Enumerate through search services and add each */
+        var engines = ss.getVisibleEngines({ });
+        for (let j=0; j < engines.length; j++) {
+          addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
+        }
+        event.target.insertBefore(document.createElement("menuseparator"),
+                                  document.getElementById("find-more-activities"));
       }
     }
   }
@@ -680,6 +789,15 @@
   prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                                getService(Components.interfaces.nsIPrefService).
                                getBranch("extensions.activities.");
+  var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                         .getService(Components.interfaces.nsIStringBundleService)
+                         .createBundle("chrome://msft_activities/locale/activities.properties");
+  try {
+    searchWithString = bundle.GetStringFromName("searchLabel");
+  } catch (ex) {
+    searchWithString = "Search with %S";
+  }
+
 
   reloadActions();
   /* Attach listeners for page load */ 
