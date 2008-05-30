@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE activities SYSTEM "chrome://msft_activities/locale/activities.dtd">
+
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  title="&activities.title;"
+  onload="onLoad();sizeToContent();"
+  buttonlabelaccept="&addProvider.label;"
+  ondialogaccept="onAccept();" ondialogcancel="onCancel();">
+
+  <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/addprovider.js"/>
+
+  <hbox>
+    <vbox>
+      <image src="chrome://msft_activities/content/activities.png" id="icon" width='32' height='32'/>
+    </vbox>
+    <vbox>
+      <description id="message" style="font-weight: bold">&addMessage.description;</description>
+      <separator/>
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row>
+            <label value="&name.label;"/>
+            <label id="name"/>
+          </row>
+          <row>
+            <label value="&from.label;"/>
+            <label id="from" style="font-weight: bold"/>
+          </row>
+          <row>
+            <label value="&webAddress.label;"/>
+            <label id="webaddress"/>
+          </row>
+          <row>
+            <label value="&type.label;"/>
+            <label id="type"/>
+          </row>
+        </rows>
+      </grid>
+      <separator/>
+      <checkbox id="makeDefault" label="&makeDefault.label;"/>
+    </vbox>
+  </hbox>
+
+</dialog>
