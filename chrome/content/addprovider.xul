@@ -16,7 +16,7 @@
       <image src="chrome://msft_activities/content/activities.png" id="icon" width='32' height='32'/>
     </vbox>
     <vbox>
-      <description id="message">&addMessage.description;</description>
+      <description id="message" style="font-weight: bold">&addMessage.description;</description>
       <separator/>
       <grid>
         <columns>
