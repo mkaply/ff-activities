@@ -188,6 +188,11 @@
         serviceObject["Action"+i].execute["Parameter"+j].Name = parameters[j-1].getAttribute("name").replace(/^\s*|\s*$/g,'');
         if (parameters[j-1].hasAttribute("value")) {
           serviceObject["Action"+i].execute["Parameter"+j].Value = parameters[j-1].getAttribute("value").replace(/^\s*|\s*$/g,'');
+        } else {
+          var script = parameters[j-1].getElementsByTagNameNS(namespaceURI, "script");
+          if (script.length > 0) {
+            serviceObject["Action"+i].execute["Parameter"+j].Script = script[0].textContent;
+          }
         }
         if (parameters[j-1].hasAttribute("type")) {
           serviceObject["Action"+i].execute["Parameter"+j].Type = parameters[j-1].getAttribute("type").replace(/^\s*|\s*$/g,'');
@@ -361,13 +366,13 @@
 
     }
   }
-  function doSubstitution(instring, data, type) {
+  function doSubstitution(instring, data, context, type) {
     var newstring = instring;
     newstring = newstring.replace("{documentTitle}", data.documentTitle);
     newstring = newstring.replace("{documentTitle?}", data.documentTitle);
     newstring = newstring.replace("{documentUrl}", data.documentUrl);
     newstring = newstring.replace("{documentUrl?}", data.documentUrl);
-    if (data.context == "selection") {
+    if (context == "selection") {
       if (type == "html") {
         newstring = newstring.replace("{selection}", data.selectionHTML);
         newstring = newstring.replace("{selection?}", data.selectionHTML);
@@ -376,7 +381,7 @@
         newstring = newstring.replace("{selection?}", data.selection);
       }
     }
-    if (data.context == "link") {
+    if (context == "link") {
       newstring = newstring.replace("{linkText}", data.linkText);
       newstring = newstring.replace("{linkText?}", data.linkText);
       newstring = newstring.replace("{linkTitle}", data.linkText);
@@ -384,14 +389,54 @@
       newstring = newstring.replace("{link}", data.link);
       newstring = newstring.replace("{link?}", data.link);
     }
-    if (data.context == "adr") {
-      newstring = newstring.replace("{post-office-box}", data.microformat["post-office-box"]);
-      newstring = newstring.replace("{extended-address}", data.microformat["extended-address"]);
-      newstring = newstring.replace("{street-address}", data.microformat["street-address"].join(','));
-      newstring = newstring.replace("{locality}", data.microformat["locality"]);
-      newstring = newstring.replace("{region}", data.microformat["region"]);
-      newstring = newstring.replace("{postal-code}", data.microformat["postal-code"]);
-      newstring = newstring.replace("{country-name}", data.microformat["country-name"]);
+    if (data.microformat) {
+      var semanticObject = data.context[context];
+      var semanticObjectType = data.context[context].semanticType;
+      for (property in Microformats[semanticObjectType].properties) {
+        if (semanticObject[property]) {
+          if (Microformats[semanticObjectType].properties[property].datatype == "microformat") {
+            if (typeof semanticObject[property] == "object") {
+              /* what should we do here - allow subprops? */
+            }
+          }
+          if (Microformats[semanticObjectType].properties[property].plural) {
+            if ((type == "html") && semanticObject[property].toHTML) {
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].toHTML().join(',')));
+            } else {
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].join(',')));
+            }
+          } else {
+            if ((type == "html") && semanticObject[property].toHTML) {
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].toHTML()));
+            } else {
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property]));
+            }
+          }
+          if (Microformats[semanticObjectType].properties[property].subproperties) {
+            for (subproperty in Microformats[semanticObjectType].properties[property].subproperties) {
+              if (semanticObject[property][subproperty]) {
+                if (Microformats[semanticObjectType].properties[property].subproperties[subproperty].plural) {
+                  if ((type == "html") && semanticObject[property][subproperty].toHTML) {  
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].toHTML().join(',')));
+                  } else {
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].join(',')));
+                  }
+                } else {
+                  if ((type == "html") && semanticObject[property][subproperty].toHTML) {
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].toHTML()));
+                  } else {
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty]));
+                  }
+                 }
+               } else {
+                 newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), "");
+               }
+            } /* for (subproperty in Microformats[semanticObjectType].properties[property].subproperties) */
+          }
+        } else {
+          newstring = newstring.replace(RegExp('{' + property + '}', "g"), "");
+        }
+      } /* for (property in Microformats[semanticObjectType].properties) */
     }
     return newstring;
   }
@@ -409,6 +454,7 @@
       return;
     }
     var activity = event.target.activity;
+    var context = event.target.context;
     if (preview) {
       if (!event.target.action.HasPreview) {
         var popup = document.getElementById("activities-preview-panel");
@@ -432,14 +478,57 @@
       if (query.length != 0) {
         query += "&";
       }
-      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Parameter"+i].Type);
-      if (Value.length > 0) {
+      if (action["Parameter"+i].Value) {
+        var Value = doSubstitution(action["Parameter"+i].Value, activity, context, action["Parameter"+i].Type);
+      } else if (action["Parameter"+i].Script) {
+        // @MAK TODO - BETTER CONTEXT
+        var s = Components.utils.Sandbox("about:blank");
+        
+        function addMFtoSandbox(semanticObject, s) {
+          var semanticObjectType = semanticObject.semanticType;
+          for (let property in Microformats[semanticObjectType].properties) {
+            if (semanticObject[property]) {
+              if ((Microformats[semanticObjectType].properties[property].datatype == "microformat") &&
+                  (!Microformats[semanticObjectType].properties[property].microformat_property)){
+                if (typeof semanticObject[property] == "object") {
+                  if (Microformats[semanticObjectType].properties[property].plural) {
+                    s[property] = [];
+                    for (let i=0; i < semanticObject[property].length; i++) {
+                      s[property][i] = {};
+                      addMFtoSandbox(semanticObject[property][i], s[property][i])
+                    }
+                  } else {
+                    s[property] = {};
+                    addMFtoSandbox(semanticObject[property], s[property])
+                  }
+                }
+              } else {
+                s[property] = semanticObject[property];
+                if (Microformats[semanticObjectType].properties[property].subproperties) {
+                  for (let subproperty in Microformats[semanticObjectType].properties[property].subproperties) {
+                    if (semanticObject[property][subproperty]) {
+                      s[property][subproperty] = semanticObject[property][subproperty];
+                     }
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (activity.microformat) {
+          addMFtoSandbox(activity.context[context], s);
+        }
+        s.alert = function(foo) {alert(foo)};
+        var Value = Components.utils.evalInSandbox(action["Parameter"+i].Script, s);
+        Value = encodeURIComponent(Value);
+      }
+      if (Value && Value.length > 0) {
         query += action["Parameter"+i].Name;
         query += "=";
         query += Value;
       }
     }
-    var url = doSubstitution(action.Action, activity);
+    var url = doSubstitution(action.Action, activity, context);
     if (action.Method.toLowerCase() == "post") {
       var ios = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
@@ -521,7 +610,7 @@
       }
     }
   }
-  function isAdr(node) {
+  function isMicroformat(node) {
     if (typeof(Microformats) == "undefined") {
       return false;
     }
@@ -532,12 +621,7 @@
     } else {
       mfNode = Microformats.getParent(node);
     }
-    if (mfNode) {
-      if (Microformats.matchClass(mfNode, "adr")) {
-        return mfNode;
-      }
-    }
-    return false;
+    return mfNode;
   }
   
   function executeSearch(event, options) {
@@ -599,9 +683,10 @@
   }
   function addMenu(activity, data, popupContext, menu, event) {
     for (let j=1; j <= activity.ActionCount; j++) {
-      if (activity["Action"+j].Context == popupContext) {
+      if (popupContext[activity["Action"+j].Context]) {
         var tempMenu = document.createElement("menuitem");
-        tempMenu.label = activity.DisplayName;
+//        tempMenu.label = activity.DisplayName;
+        tempMenu.label = activity.DisplayName + " (" + activity["Action"+j].Context + ")";
         tempMenu.setAttribute("label", tempMenu.label);
         if (activity.Icon) {
           tempMenu.image = activity.Icon;
@@ -611,6 +696,7 @@
         tempMenu.setAttribute("class", tempMenu["class"]);
         tempMenu.activity = data;
         tempMenu.action = activity["Action"+j];
+        tempMenu.context = activity["Action"+j].Context;
         tempMenu.addEventListener("command",
                                   function(event){execute(event)},
                                   true);
@@ -669,26 +755,34 @@
     }
 
     /* context can be selection, document or link */
-    var popupContext;
+    var popupContext = [];
     var data = {};
     var mfNode;
     if (gContextMenu.onLink) {
-      popupContext = "link";
+      popupContext["link"] = true;
       data.link = gContextMenu.linkURL;
       data.linkText = gContextMenu.linkText.call(gContextMenu);
-    } else if (gContextMenu.isContentSelection()) {
-      popupContext = "selection";
+    }
+    if (gContextMenu.isContentSelection()) {
+      popupContext["selection"] = true;
       var selection = document.commandDispatcher.focusedWindow.getSelection();
       data.selection = encodeURIComponent(selection.toString());
       var div = content.document.createElement("div");
       div.appendChild(selection.getRangeAt(0).cloneContents());
       data.selectionHTML = encodeURIComponent(div.innerHTML);
-//    } else if (mfNode = isAdr(gContextMenu.target)) {
-//      data.microformat =  new adr(mfNode);
-//      popupContext = "adr";
-    } else {
-      popupContext = "document";
     }
+    if ((mfNode = isMicroformat(gContextMenu.target))) {
+      data.microformat = true;
+      while (mfNode) {
+        var mfNameString = Microformats.getNamesFromNode(mfNode);
+        var mfNames = mfNameString.split(" ");
+        for (i=0; i < mfNames.length; i++) {
+          popupContext[mfNames[i]] = new Microformats[mfNames[i]].mfObject(mfNode, true);
+        }
+        mfNode = Microformats.getParent(mfNode);
+      }
+    }
+    popupContext["document"] = true;
     data.documentTitle = content.document.title;
     data.documentUrl = content.document.location.href;
     data.context = popupContext;
@@ -706,7 +800,7 @@
           if (!services[i][DefaultActivity].Enabled) {
             continue;
           }
-          if (!addedSearch && (popupContext == "selection") && (searchWithString < i)) {
+          if (!addedSearch && popupContext["selection"] && (searchWithString < i)) {
             if (!prevService || (searchWithString > prevService)) {
               addSearch(ss.defaultEngine, data, document.getElementById("activities-menu"), event);
               addedSearch = true;
@@ -720,7 +814,7 @@
         }
       }
       
-      if ((popupContext == "selection")  && !addedSearch) {
+      if (popupContext["selection"]  && !addedSearch) {
         addSearch(ss.defaultEngine, data, document.getElementById("activities-menu"), event);
       }
     } else {
@@ -728,18 +822,18 @@
       var addedSearch = false;
       for (let i in services) {
         var addSeparator = false;
-          if (!addedSearch && (popupContext == "selection") && (searchWithString < i)) {
-            if (!prevService || (searchWithString > prevService)) {
-              /* Enumerate through search services and add each */
-              var engines = ss.getVisibleEngines({ });
-              for (let j=0; j < engines.length; j++) {
-                addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
-              }
-              event.target.insertBefore(document.createElement("menuseparator"),
-                                        document.getElementById("find-more-activities"));
-              addedSearch = true;
+        if (!addedSearch && popupContext["selection"] && (searchWithString < i)) {
+          if (!prevService || (searchWithString > prevService)) {
+            /* Enumerate through search services and add each */
+            var engines = ss.getVisibleEngines({ });
+            for (let j=0; j < engines.length; j++) {
+              addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
             }
+            event.target.insertBefore(document.createElement("menuseparator"),
+                                      document.getElementById("find-more-activities"));
+            addedSearch = true;
           }
+        }
         for (let activity_name in services[i]) {
           var activity = services[i][activity_name];
           if (!activity.Enabled) {
@@ -754,7 +848,7 @@
                                     document.getElementById("find-more-activities"));
         }
       }
-      if ((popupContext == "selection")  && !addedSearch) {
+      if (popupContext["selection"] && !addedSearch) {
         /* Enumerate through search services and add each */
         var engines = ss.getVisibleEngines({ });
         for (let j=0; j < engines.length; j++) {
@@ -784,6 +878,9 @@
 //      /* Unable to load system Microformats - no microformats support */
 //    }
 //  }
+  if (typeof(Microformats) == "undefined") {
+//    objScriptLoader.loadSubScript("chrome://msft_activities/content/Microformats/Microformats.js");
+  }
 
   migrate();
   prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
