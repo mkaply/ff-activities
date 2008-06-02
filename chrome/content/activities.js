@@ -1,5 +1,7 @@
 (function () {
   var namespaceURI = "http://www.microsoft.com/schemas/openservicedescription/1.0";
+  var eTLDService;
+  var ioService;
   var prefBranch = null;
   var prefObserver;
   var openServiceObserver;
@@ -54,7 +56,6 @@
 
         var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
 
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
         var homepageUrl = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0]
         var host = ioService.newURI(homepageUrl.textContent.replace(/^\s*|\s*$/g,''), null, null).host;
         
@@ -75,9 +76,7 @@
         if (icon) {
           var iconfile = newdir.clone();
           
-          var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-          var uri = ios.newURI(icon, null, null);
+          var uri = ioService.newURI(icon, null, null);
           /* Need URL to get leafName */
           uri.QueryInterface(Components.interfaces.nsIURL);
           var splitpath = uri.fileName.split(".");
@@ -88,7 +87,7 @@
           } catch (ex) {
           }
     
-          var channel = ios.newChannelFromURI(uri);
+          var channel = ioService.newChannelFromURI(uri);
           var downloader =
             Components.classes["@mozilla.org/network/downloader;1"]
                       .createInstance(Components.interfaces.nsIDownloader);
@@ -107,9 +106,7 @@
     var serviceObject = {};
 
     serviceObject.HomepageURL = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0].textContent.replace(/^\s*|\s*$/g,'');
-    serviceObject.Domain = Components.classes["@mozilla.org/network/io-service;1"]
-                                      .getService(Components.interfaces.nsIIOService)	  
-                                      .newURI(serviceObject.HomepageURL, null, null).host;
+    serviceObject.Domain = ioService.newURI(serviceObject.HomepageURL, null, null).host;
     var display = doc.getElementsByTagNameNS(namespaceURI, "display")[0];
     serviceObject.DisplayName = display.getElementsByTagNameNS(namespaceURI, "name")[0].textContent.replace(/^\s*|\s*$/g,'');
     try {
@@ -135,6 +132,9 @@
     for (let i=1; i<=activityActions.length; i++) {
       serviceObject["Action"+i] = {};
       serviceObject["Action"+i].Context = activityActions[i-1].getAttribute("context").replace(/^\s*|\s*$/g,'');
+      if (activityActions[i-1].hasAttribute("domain")) {
+        serviceObject["Action"+i].Domain = activityActions[i-1].getAttribute("domain").replace(/^\s*|\s*$/g,'');
+      }
       var previews = activityActions[i-1].getElementsByTagNameNS(namespaceURI, "preview");
       if (previews.length > 0) {
         serviceObject["Action"+i].HasPreview = true;
@@ -255,16 +255,14 @@
             if (serviceObject.Icon) {
               var iconfile = f.clone();
               
-              var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-              var uri = ios.newURI(serviceObject.Icon, null, null);
+              var uri = ioService.newURI(serviceObject.Icon, null, null);
               /* Need an nsIURL to get leafName */
               uri.QueryInterface(Components.interfaces.nsIURL);
               var splitpath = uri.fileName.split(".");
               var extension = splitpath[splitpath.length-1];
               iconfile.leafName = serviceObject.Verb + "_" + serviceObject.Domain + "." + extension;
 
-              serviceObject.Icon = ios.newFileURI(iconfile).spec;
+              serviceObject.Icon = ioService.newFileURI(iconfile).spec;
             }
             services[serviceObject.Verb][serviceObject.Domain] = serviceObject;
         }
@@ -372,6 +370,9 @@
     newstring = newstring.replace("{documentTitle?}", data.documentTitle);
     newstring = newstring.replace("{documentUrl}", data.documentUrl);
     newstring = newstring.replace("{documentUrl?}", data.documentUrl);
+    if (context == "document") {
+      return newstring;
+    }
     if (context == "selection") {
       if (type == "html") {
         newstring = newstring.replace("{selection}", data.selectionHTML);
@@ -380,6 +381,7 @@
         newstring = newstring.replace("{selection}", data.selection);
         newstring = newstring.replace("{selection?}", data.selection);
       }
+      return newstring;
     }
     if (context == "link") {
       newstring = newstring.replace("{linkText}", data.linkText);
@@ -388,6 +390,7 @@
       newstring = newstring.replace("{linkTitle?}", data.linkText);
       newstring = newstring.replace("{link}", data.link);
       newstring = newstring.replace("{link?}", data.link);
+      return newstring;
     }
     if (data.microformat) {
       var semanticObject = data.context[context];
@@ -530,9 +533,6 @@
     }
     var url = doSubstitution(action.Action, activity, context);
     if (action.Method.toLowerCase() == "post") {
-      var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-
       var stringStream =  Components.classes["@mozilla.org/io/string-input-stream;1"].
                                      createInstance(Components.interfaces.nsIStringInputStream);
       if ("data" in stringStream) // Gecko 1.9 or newer
@@ -684,8 +684,20 @@
   function addMenu(activity, data, popupContext, menu, event) {
     for (let j=1; j <= activity.ActionCount; j++) {
       if (popupContext[activity["Action"+j].Context]) {
+        if (activity["Action"+j].Domain) {
+          if (eTLDService) {
+            var pageHost = ioService.newURI(content.document.location.href, null, null);
+            try {
+              if (!eTLDService.getBaseDomain(pageHost).match(activity["Action"+j].Domain + "$")) {
+                continue;
+              }
+            } catch (ex) {
+              /* If getBaseDomain failed, probably a file URL */
+              continue;
+            }
+          }
+        }
         var tempMenu = document.createElement("menuitem");
-//        tempMenu.label = activity.DisplayName;
         tempMenu.label = activity.DisplayName + " (" + activity["Action"+j].Context + ")";
         tempMenu.setAttribute("label", tempMenu.label);
         if (activity.Icon) {
@@ -886,6 +898,12 @@
   prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                                getService(Components.interfaces.nsIPrefService).
                                getBranch("extensions.activities.");
+  if (Components.interfaces.nsIEffectiveTLDService) {
+    eTLDService = Components.classes["@mozilla.org/network/effective-tld-service;1"]
+                            .getService(Components.interfaces.nsIEffectiveTLDService);
+  }
+  ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+
   var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
                          .getService(Components.interfaces.nsIStringBundleService)
                          .createBundle("chrome://msft_activities/locale/activities.properties");
