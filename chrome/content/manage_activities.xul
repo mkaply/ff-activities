@@ -29,11 +29,11 @@
 
   <tree hidecolumnpicker="true" flex="1" id="activities-tree" context="clipmenu" onselect="enableDisableButtons();">
     <treecols>
-      <treecol primary="true" label="&nameColumn.label;" flex="4"/>
+      <treecol primary="true" label="&nameColumn.label;" flex="2"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&addressColumn.label;" flex="2"/>
+      <treecol label="&addressColumn.label;" flex="1"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&categoryColumn.label;" flex="1"/>
+      <treecol label="&contextColumn.label;" flex="1"/>
       <splitter class="tree-splitter"/>
       <treecol label="&statusColumn.label;" flex="1"/>
     </treecols>

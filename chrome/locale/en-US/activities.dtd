@@ -7,6 +7,7 @@
 <!ENTITY nameColumn.label "Name">
 <!ENTITY addressColumn.label "Address">
 <!ENTITY categoryColumn.label "Category">
+<!ENTITY contextColumn.label "Context">
 <!ENTITY statusColumn.label "Status">
 <!ENTITY enable.label "Enable">
 <!ENTITY disable.label "Disable">
