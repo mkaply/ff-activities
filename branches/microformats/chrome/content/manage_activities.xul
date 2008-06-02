@@ -12,7 +12,8 @@
   height="480"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   onload="onLoad();"
-  ondialogaccept="onOK();">
+  ondialogaccept="onOK();"
+  ondialogcancel="onOK();">
 
   <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/manage_activities.js"/>
 

@@ -253,7 +253,11 @@ function (filename)
         var retVals = { ok: null, name: null };
         win.openDialog('chrome://msft_activities/content/addprovider.xul','addprovider','chrome,centerscreen,modal', result, win.content.location.href, retVals);
         if (retVals.ok) {
-          promptService.alert(win, bundle.GetStringFromName("activitiesTitle"), bundle.GetStringFromName("installSuccessful") + retVals.name); 
+          promptService.alert(win, bundle.GetStringFromName("activitiesTitle"), bundle.GetStringFromName("installSuccessful") + retVals.name);
+          Components.classes["@mozilla.org/observer-service;1"]
+                    .getService(Components.interfaces.nsIObserverService)
+                    .notifyObservers(null, "openService", "add");
+
         } else {
           /* delete temporary file */
         }

@@ -1,8 +1,17 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="chrome://msft_activities/content/activities.css" type="text/css"?>
 <!DOCTYPE activities2 SYSTEM "chrome://msft_activities/locale/activities.dtd">
 <overlay id="operator" 
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/activities.js"/>
+  <hbox id="urlbar-icons">
+    <button insertbefore="feed-button"
+     type="menu"
+     style="-moz-user-focus: none"
+     class="plain urlbar-icon"
+     id="activities-urlbar-icon">
+    </button>
+  </hbox>
   <popup id="contentAreaContextMenu">
     <menuseparator id="activities-separator"/>
     <menu id="activities-menu" label="&moreActivities.label;">

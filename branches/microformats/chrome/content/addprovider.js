@@ -136,9 +136,6 @@ function onAccept() {
   if (document.getElementById("makeDefault").checked) {
     prefBranch.setCharPref(encodeURI(category) + ".DefaultActivity", host);
   }
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(null, "openService", "add");
 
   window.arguments[2].ok = true;
   window.arguments[2].name = name;

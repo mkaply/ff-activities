@@ -247,10 +247,6 @@ function onDeleteActivity()
       treeitem.parentNode.removeChild(treeitem);
     }
 
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .notifyObservers(null, "openService", "delete");
-    
     enableDisableButtons();
   }
 }
@@ -258,7 +254,7 @@ function onDeleteActivity()
 function onOK()
 {
     Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService)
-                                         .notifyObservers(null, "openService", "add");
+                                         .notifyObservers(null, "openService", "change");
 }
 
 function generatePopup()

@@ -6,6 +6,7 @@
   var prefObserver;
   var openServiceObserver;
   var searchWithString;
+  var addToString;
   services = [];
   function migrate() {
     const MODE_RDONLY   = 0x01;
@@ -310,7 +311,9 @@
         switch (data) {
         case "add":
         case "delete":
+        case "change":
           reloadActions();
+          detectOpenService();
           break;
         }
       }
@@ -328,6 +331,8 @@
     menupopup.addEventListener("popupshowing",
                           function(event){ contextPopupShowing(event)},
                           false);
+    window.document.getElementById("content").addEventListener("pageshow", function(e) { detectOpenService(); }, true);
+    getBrowser().tabContainer.addEventListener("select", function(e) { detectOpenService(e); }, true);
   }
   /* This function handles the window closing piece, removing listeners and observers */
   function shutdown()
@@ -685,7 +690,7 @@
   }
   function addServiceDownload(uri, title, menu, event) {
     var tempMenu = document.createElement("menuitem");
-    tempMenu.label = "Add " + "\"" + title + "\"";
+    tempMenu.label = addToString.replace(/%S/,title);
     tempMenu.setAttribute("label", tempMenu.label);
 //    if (engine.iconURI) {
 //      tempMenu.image = engine.iconURI.spec;
@@ -944,14 +949,56 @@
     }
   }
   
-  function dump(message) {
-    var consoleService = Components.classes["@mozilla.org/consoleservice;1"].
-                                    getService(Components.interfaces.nsIConsoleService);
-    var scriptError = Components.classes["@mozilla.org/scripterror;1"].
-                                 createInstance(Components.interfaces.nsIScriptError);
-    scriptError.init("Activities: " + message, content.document.location.href, null, 0, 
-                     null, 0, 0);
-    consoleService.logMessage(scriptError);
+  function detectOpenService() {
+    var dochead = content.document.getElementsByTagName("head")[0];
+    var links = dochead.getElementsByTagName("link");
+    if (links.length > 0) {
+      var popup;
+      for (let i=0; i < links.length; i++) {
+        if ((links[i].getAttribute("rel") == "service") &&
+            (links[i].getAttribute("type") == "application/openservicedescription+xml")) {
+          var uri = ioService.newURI(links[i].getAttribute("href"), null, ioService.newURI(content.document.location.href, null, null));
+          /* Somehow check if we already have something with this title/ */
+          var title = links[i].getAttribute("title");
+          var alreadyAdded = false;
+          for (let j in services) {
+            for (let activity_name in services[j]) {
+              if (services[j][activity_name].DisplayName == title) {
+                alreadyAdded = true;
+              }
+            }
+          }
+          if (alreadyAdded) {
+            continue;
+          }
+          if (!popup) {
+            popup = document.createElement("menupopup");
+            popup.position = "after_end";
+            popup.setAttribute("position", popup.position);
+          }
+          var tempMenu = document.createElement("menuitem");
+          tempMenu.label = addToString.replace(/%S/,title);
+          tempMenu.setAttribute("label", tempMenu.label);
+          tempMenu.addEventListener("command",
+                                    function(event){window.external.addService(uri.spec);},
+                                    true);
+
+          popup.appendChild(tempMenu);
+        }
+      }
+      if (popup) {
+        var urlbaricon = document.getElementById("activities-urlbar-icon");
+        urlbaricon.setAttribute("openService", "true");
+        for(var j=urlbaricon.childNodes.length - 1; j>=0; j--) {
+          urlbaricon.removeChild(urlbaricon.childNodes.item(j));
+          /* TO DO MAKE THIS bBETTER */
+        }
+        urlbaricon.appendChild(popup);
+        return;
+      }
+    }
+    document.getElementById("activities-urlbar-icon").removeAttribute("openService");
+    return;
   }
   
 //  /* Attempt to use the Microformats module if available (Firefox 3) */
@@ -980,9 +1027,15 @@
                          .getService(Components.interfaces.nsIStringBundleService)
                          .createBundle("chrome://msft_activities/locale/activities.properties");
   try {
-    searchWithString = bundle.GetStringFromName("searchLabel");
+    searchWithString = bundle.GetStringFromName("searchWithString");
   } catch (ex) {
     searchWithString = "Search with %S";
+  }
+
+  try {
+    addToString = bundle.GetStringFromName("addToString");
+  } catch (ex) {
+    addToString = 'Add "%S"';
   }
 
 
