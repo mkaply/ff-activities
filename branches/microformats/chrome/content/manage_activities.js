@@ -60,6 +60,11 @@ function onLoad() {
     var activity = doc.getElementsByTagNameNS(namespaceURI, "activity")[0]
     var name = display.getElementsByTagNameNS(namespaceURI, "name")[0].textContent.replace(/^\s*|\s*$/g,'');
     var category = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
+    var activityActions = activity.getElementsByTagNameNS(namespaceURI, "activityAction");
+    var contexts = [];
+    for (let i=0; i<activityActions.length; i++) {
+      contexts.push(activityActions[i].getAttribute("context"));
+    }
     var host = ioService.newURI(homepageUrl.textContent.replace(/^\s*|\s*$/g,''), null, null).host;
     if (!main_treecell || main_treecell.getAttribute("label") != category) {
       var main_treeitem = document.createElement("treeitem");
@@ -81,7 +86,7 @@ function onLoad() {
     sub_treecell.setAttribute("label", host);
     sub_treerow.appendChild(sub_treecell);
     var sub_treecell = document.createElement("treecell");
-    sub_treecell.setAttribute("label", category);
+    sub_treecell.setAttribute("label", contexts.join(","));
     sub_treerow.appendChild(sub_treecell);
     var sub_treecell = document.createElement("treecell");
     try {
