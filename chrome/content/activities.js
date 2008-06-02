@@ -624,7 +624,7 @@
     return mfNode;
   }
   
-  function executeSearch(event, options) {
+  function executeSearch(selection, engine, event, options) {
     if (options) {
       var preview = options.preview;
       var click = options.click;
@@ -649,16 +649,60 @@
       }
       return;
     }
-    var selection = event.target.activity.selection;
-    var engine = event.target.engine;
-    var submission = engine.getSubmission(selection, null);
+    var submission = engine.getSubmission(decodeURIComponent(selection), null);
     /* Might want to handle postData someday */
     openUILink(submission.uri.spec, event);
     if (click) {
       closeMenus(event.target);
     }
   }
+  function executeServiceDownload(event, uri, options) {
+    if (options) {
+      var preview = options.preview;
+      var click = options.click;
+    }
+    if (preview && !document.getElementById("activities-preview-panel")) {
+      return;
+    }
   
+    /* Only handle click in the middle button case */
+    if (click && (event.button != 1)) {
+      return;
+    }
+    if (preview) {
+      var popup = document.getElementById("activities-preview-panel");
+      if (popup) {
+        popup.hidePopup();
+      }
+      var iframe = document.getElementById("activities-preview-iframe");
+      if (iframe) {
+        iframe.src = "about:blank";
+        iframe.setAttribute("src", iframe.src);
+      }
+      return;
+    }
+    window.external.addService(uri.spec);
+  }
+  function addServiceDownload(uri, title, menu, event) {
+    var tempMenu = document.createElement("menuitem");
+    tempMenu.label = "Add " + "\"" + title + "\"";
+    tempMenu.setAttribute("label", tempMenu.label);
+//    if (engine.iconURI) {
+//      tempMenu.image = engine.iconURI.spec;
+//      tempMenu.setAttribute("image", tempMenu.image);
+//    }
+    tempMenu["class"] = "menuitem-iconic";
+    tempMenu.setAttribute("class", tempMenu["class"]);
+    tempMenu.addEventListener("command",
+                              function(event){executeServiceDownload(event, uri)},
+                              true);
+    tempMenu.addEventListener("click", function(event){executeSrviceDownload(event, uri, {click:true})}, true);
+    tempMenu.addEventListener("mouseover",
+                              function(event){executeServiceDownload(event, uri, {preview:true})},
+                              true);
+    event.target.insertBefore(tempMenu, menu);
+    return true;
+  }
   function addSearch(engine, data, menu, event) {
     var tempMenu = document.createElement("menuitem");
     tempMenu.label = searchWithString.replace(/%S/,engine.name);
@@ -669,14 +713,12 @@
     }
     tempMenu["class"] = "menuitem-iconic";
     tempMenu.setAttribute("class", tempMenu["class"]);
-    tempMenu.activity = data;
-    tempMenu.engine = engine;
     tempMenu.addEventListener("command",
-                              function(event){executeSearch(event)},
+                              function(event){executeSearch(data.selection, engine, event)},
                               true);
-    tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
+    tempMenu.addEventListener("click", function(event){executeSearch(data.selection, engine, event, {click:true})}, true);
     tempMenu.addEventListener("mouseover",
-                              function(event){executeSearch(event, {preview:true})},
+                              function(event){executeSearch(data.selection, engine, event, {preview:true})},
                               true);
     event.target.insertBefore(tempMenu, menu);
     return true;
@@ -868,6 +910,36 @@
         }
         event.target.insertBefore(document.createElement("menuseparator"),
                                   document.getElementById("find-more-activities"));
+      }
+      var dochead = content.document.getElementsByTagName("head")[0];
+      var links = dochead.getElementsByTagName("link");
+      if (links.length > 0) {
+        var addSeparator = false;
+        for (let i=0; i < links.length; i++) {
+          if ((links[i].getAttribute("rel") == "service") &&
+              (links[i].getAttribute("type") == "application/openservicedescription+xml")) {
+            var uri = ioService.newURI(links[i].getAttribute("href"), null, ioService.newURI(content.document.location.href, null, null));
+            /* Somehow check if we already have something with this title/ */
+            var title = links[i].getAttribute("title");
+            var alreadyAdded = false;
+            for (let j in services) {
+              for (let activity_name in services[j]) {
+                if (services[j][activity_name].DisplayName == title) {
+                  alreadyAdded = true;
+                }
+              }
+            }
+            if (alreadyAdded) {
+              continue;
+            }
+            addServiceDownload(uri, title, document.getElementById("find-more-activities"), event)
+            addSeparator = true;
+          }
+        }
+        if (addSeparator) {
+          event.target.insertBefore(document.createElement("menuseparator"),
+                                    document.getElementById("find-more-activities"));
+        }
       }
     }
   }
