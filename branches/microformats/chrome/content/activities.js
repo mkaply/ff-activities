@@ -1,3 +1,5 @@
+var Activities = {};
+
 (function () {
   var namespaceURI = "http://www.microsoft.com/schemas/openservicedescription/1.0";
   var eTLDService;
@@ -7,6 +9,7 @@
   var openServiceObserver;
   var searchWithString;
   var addToString;
+  var previewTimerID;
   services = [];
   function migrate() {
     const MODE_RDONLY   = 0x01;
@@ -615,6 +618,24 @@
       }
     }
   }
+  function hidePreviewWindow() {
+    if (previewTimerID) {
+      window.clearTimeout(previewTimerID);
+    }
+    var popup = document.getElementById('activities-preview-panel');
+    if (popup) {
+      popup.hidePopup()
+    }
+  }
+  /* hidePreviewWindow is a global */
+  Activities.hidePreviewWindow = hidePreviewWindow;
+  function delayPreview(event, options) {
+    /* Should we check to make sure the node involved is microformat related ? */
+    if (previewTimerID) {
+      window.clearTimeout(previewTimerID);
+    }
+    previewTimerID = window.setTimeout(function () {execute(event, options);}, 500);
+  }
   function isMicroformat(node) {
     if (typeof(Microformats) == "undefined") {
       return false;
@@ -701,7 +722,7 @@
     tempMenu.addEventListener("command",
                               function(event){executeServiceDownload(event, uri)},
                               true);
-    tempMenu.addEventListener("click", function(event){executeSrviceDownload(event, uri, {click:true})}, true);
+    tempMenu.addEventListener("click", function(event){executeServiceDownload(event, uri, {click:true})}, true);
     tempMenu.addEventListener("mouseover",
                               function(event){executeServiceDownload(event, uri, {preview:true})},
                               true);
@@ -761,7 +782,7 @@
                                   true);
         tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
         tempMenu.addEventListener("mouseover",
-                                  function(event){execute(event, {preview:true})},
+                                  function(event){delayPreview(event, {preview:true})},
                                   true);
         event.target.insertBefore(tempMenu, menu);
         return true;
