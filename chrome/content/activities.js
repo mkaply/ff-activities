@@ -3,6 +3,7 @@
   var prefBranch = null;
   var prefObserver;
   var openServiceObserver;
+  var textToSubURI;
   var searchWithString;
   services = [];
   function migrate() {
@@ -126,7 +127,7 @@
     serviceObject.Verb = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
     /* Check if the activity is disabled in preferences */
     try {
-      serviceObject.Enabled = !prefBranch.getBoolPref(encodeURIComponent(serviceObject.Verb) + "." + serviceObject.Domain + ".disabled");
+      serviceObject.Enabled = !prefBranch.getBoolPref(encodeURI(serviceObject.Verb) + "." + serviceObject.Domain + ".disabled");
     } catch (ex) {
       serviceObject.Enabled = true;
     }
@@ -143,6 +144,8 @@
         serviceObject["Action"+i].preview.Action = preview.getAttribute("action").replace(/^\s*|\s*$/g,'');
         if (preview.hasAttribute("accept-charset")) {
           serviceObject["Action"+i].preview["Accept-charset"] = preview.getAttribute("accept-charset").replace(/^\s*|\s*$/g,'');
+        } else {
+          serviceObject["Action"+i].preview["Accept-charset"] = "utf-8";
         }
         if (preview.hasAttribute("enctype")) {
           serviceObject["Action"+i].preview.Enctype = preview.getAttribute("enctype").replace(/^\s*|\s*$/g,'');
@@ -172,6 +175,8 @@
       serviceObject["Action"+i].execute.Action = execute.getAttribute("action").replace(/^\s*|\s*$/g,'');
       if (execute.hasAttribute("accept-charset")) {
         serviceObject["Action"+i].execute["Accept-charset"] = execute.getAttribute("accept-charset").replace(/^\s*|\s*$/g,'');
+      } else {
+        serviceObject["Action"+i].execute["Accept-charset"] = "utf-8";
       }
       if (execute.hasAttribute("enctype")) {
         serviceObject["Action"+i].execute.Enctype = execute.getAttribute("enctype").replace(/^\s*|\s*$/g,'');
@@ -361,37 +366,32 @@
 
     }
   }
-  function doSubstitution(instring, data, type) {
+  function encodeParam(instring, charset) {
+    var outstring = textToSubURI.ConvertAndEscape(charset, instring);
+    return outstring;
+  }
+  function doSubstitution(instring, data, charset, type) {
     var newstring = instring;
-    newstring = newstring.replace("{documentTitle}", data.documentTitle);
-    newstring = newstring.replace("{documentTitle?}", data.documentTitle);
+    newstring = newstring.replace("{documentTitle}", encodeParam(data.documentTitle, charset));
+    newstring = newstring.replace("{documentTitle?}", encodeParam(data.documentTitle, charset));
     newstring = newstring.replace("{documentUrl}", data.documentUrl);
     newstring = newstring.replace("{documentUrl?}", data.documentUrl);
     if (data.context == "selection") {
-      if (type == "html") {
-        newstring = newstring.replace("{selection}", data.selectionHTML);
-        newstring = newstring.replace("{selection?}", data.selectionHTML);
+      if (type  && (type == "html")) {
+        newstring = newstring.replace("{selection}", encodeParam(data.selectionHTML, charset));
+        newstring = newstring.replace("{selection?}", encodeParam(data.selectionHTML, charset));
       } else {
-        newstring = newstring.replace("{selection}", data.selection);
-        newstring = newstring.replace("{selection?}", data.selection);
+        newstring = newstring.replace("{selection}", encodeParam(data.selection, charset));
+        newstring = newstring.replace("{selection?}", encodeParam(data.selection, charset));
       }
     }
     if (data.context == "link") {
-      newstring = newstring.replace("{linkText}", data.linkText);
-      newstring = newstring.replace("{linkText?}", data.linkText);
-      newstring = newstring.replace("{linkTitle}", data.linkText);
-      newstring = newstring.replace("{linkTitle?}", data.linkText);
+      newstring = newstring.replace("{linkText}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkText?}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkTitle}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkTitle?}", encodeParam(data.linkText, charset));
       newstring = newstring.replace("{link}", data.link);
       newstring = newstring.replace("{link?}", data.link);
-    }
-    if (data.context == "adr") {
-      newstring = newstring.replace("{post-office-box}", data.microformat["post-office-box"]);
-      newstring = newstring.replace("{extended-address}", data.microformat["extended-address"]);
-      newstring = newstring.replace("{street-address}", data.microformat["street-address"].join(','));
-      newstring = newstring.replace("{locality}", data.microformat["locality"]);
-      newstring = newstring.replace("{region}", data.microformat["region"]);
-      newstring = newstring.replace("{postal-code}", data.microformat["postal-code"]);
-      newstring = newstring.replace("{country-name}", data.microformat["country-name"]);
     }
     return newstring;
   }
@@ -432,14 +432,14 @@
       if (query.length != 0) {
         query += "&";
       }
-      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Parameter"+i].Type);
+      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type);
       if (Value.length > 0) {
         query += action["Parameter"+i].Name;
         query += "=";
         query += Value;
       }
     }
-    var url = doSubstitution(action.Action, activity);
+    var url = doSubstitution(action.Action, activity, action["Accept-charset"]);
     if (action.Method.toLowerCase() == "post") {
       var ios = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
@@ -458,11 +458,7 @@
       } else {
         postData.addHeader("Content-Type", "application/x-www-form-urlencoded");
       }
-      if (action["Accept-charset"]) {
-        postData.addHeader("Accept-Charset", action["Accept-charset"]);
-      } else {
-        postData.addHeader("Accept-Charset", "utf-8");
-      }
+      postData.addHeader("Accept-Charset", action["Accept-charset"]);
       postData.addContentLength = true;
       postData.setData(stringStream);
     } else {
@@ -679,10 +675,10 @@
     } else if (gContextMenu.isContentSelection()) {
       popupContext = "selection";
       var selection = document.commandDispatcher.focusedWindow.getSelection();
-      data.selection = encodeURIComponent(selection.toString());
+      data.selection = selection.toString();
       var div = content.document.createElement("div");
       div.appendChild(selection.getRangeAt(0).cloneContents());
-      data.selectionHTML = encodeURIComponent(div.innerHTML);
+      data.selectionHTML = div.innerHTML;
 //    } else if (mfNode = isAdr(gContextMenu.target)) {
 //      data.microformat =  new adr(mfNode);
 //      popupContext = "adr";
@@ -789,6 +785,9 @@
   prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                                getService(Components.interfaces.nsIPrefService).
                                getBranch("extensions.activities.");
+  textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
+                           .getService(Components.interfaces.nsITextToSubURI);
+
   var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
                          .getService(Components.interfaces.nsIStringBundleService)
                          .createBundle("chrome://msft_activities/locale/activities.properties");
