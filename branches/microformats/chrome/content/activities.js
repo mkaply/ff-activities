@@ -992,17 +992,21 @@
     document.getElementById("activities-urlbar-icon").removeAttribute("openService");
     return;
   }
-  
-//  /* Attempt to use the Microformats module if available (Firefox 3) */
-//  if (Components.utils.import) {
-//    try {
-//      Components.utils.import("resource:///modules/Microformats.js");
-//    } catch (ex) {
-//      /* Unable to load system Microformats - no microformats support */
-//    }
-//  }
+
   if (typeof(Microformats) == "undefined") {
-//    objScriptLoader.loadSubScript("chrome://msft_activities/content/Microformats/Microformats.js");
+    /* Attempt to use the Microformats module if available (Firefox 3) */
+    if (Components.utils.import) {
+      try {
+        Components.utils.import("resource:///modules/Microformats.js");
+      } catch (ex) {
+        /* Unable to load system Microformats - no microformats support */
+      }
+    }
+    if (typeof(Microformats) == "undefined") {
+      var objScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                                        .getService(Components.interfaces.mozIJSSubScriptLoader);
+      objScriptLoader.loadSubScript("chrome://msft_activities/content/Microformats/Microformats.js");
+    }
   }
 
   migrate();
