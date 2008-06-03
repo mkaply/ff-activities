@@ -3,6 +3,7 @@
   var prefBranch = null;
   var prefObserver;
   var openServiceObserver;
+  var ioService;
   var textToSubURI;
   var searchWithString;
   services = [];
@@ -55,7 +56,6 @@
 
         var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
 
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
         var homepageUrl = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0]
         var host = ioService.newURI(homepageUrl.textContent.replace(/^\s*|\s*$/g,''), null, null).host;
         
@@ -76,9 +76,7 @@
         if (icon) {
           var iconfile = newdir.clone();
           
-          var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-          var uri = ios.newURI(icon, null, null);
+          var uri = ioService.newURI(icon, null, null);
           /* Need URL to get leafName */
           uri.QueryInterface(Components.interfaces.nsIURL);
           var splitpath = uri.fileName.split(".");
@@ -89,7 +87,7 @@
           } catch (ex) {
           }
     
-          var channel = ios.newChannelFromURI(uri);
+          var channel = ioService.newChannelFromURI(uri);
           var downloader =
             Components.classes["@mozilla.org/network/downloader;1"]
                       .createInstance(Components.interfaces.nsIDownloader);
@@ -108,9 +106,7 @@
     var serviceObject = {};
 
     serviceObject.HomepageURL = doc.getElementsByTagNameNS(namespaceURI, "homepageUrl")[0].textContent.replace(/^\s*|\s*$/g,'');
-    serviceObject.Domain = Components.classes["@mozilla.org/network/io-service;1"]
-                                      .getService(Components.interfaces.nsIIOService)	  
-                                      .newURI(serviceObject.HomepageURL, null, null).host;
+    serviceObject.Domain = ioService.newURI(serviceObject.HomepageURL, null, null).host;
     var display = doc.getElementsByTagNameNS(namespaceURI, "display")[0];
     serviceObject.DisplayName = display.getElementsByTagNameNS(namespaceURI, "name")[0].textContent.replace(/^\s*|\s*$/g,'');
     try {
@@ -255,16 +251,14 @@
             if (serviceObject.Icon) {
               var iconfile = f.clone();
               
-              var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-              var uri = ios.newURI(serviceObject.Icon, null, null);
+              var uri = ioService.newURI(serviceObject.Icon, null, null);
               /* Need an nsIURL to get leafName */
               uri.QueryInterface(Components.interfaces.nsIURL);
               var splitpath = uri.fileName.split(".");
               var extension = splitpath[splitpath.length-1];
               iconfile.leafName = serviceObject.Verb + "_" + serviceObject.Domain + "." + extension;
 
-              serviceObject.Icon = ios.newFileURI(iconfile).spec;
+              serviceObject.Icon = ioService.newFileURI(iconfile).spec;
             }
             services[serviceObject.Verb][serviceObject.Domain] = serviceObject;
         }
@@ -441,9 +435,6 @@
     }
     var url = doSubstitution(action.Action, activity, action["Accept-charset"]);
     if (action.Method.toLowerCase() == "post") {
-      var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-
       var stringStream =  Components.classes["@mozilla.org/io/string-input-stream;1"].
                                      createInstance(Components.interfaces.nsIStringInputStream);
       if ("data" in stringStream) // Gecko 1.9 or newer
@@ -787,6 +778,9 @@
                                getBranch("extensions.activities.");
   textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
                            .getService(Components.interfaces.nsITextToSubURI);
+   ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                         .getService(Components.interfaces.nsIIOService);
+
 
   var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
                          .getService(Components.interfaces.nsIStringBundleService)
