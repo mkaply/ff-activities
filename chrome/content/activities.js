@@ -362,6 +362,9 @@
   }
   function encodeParam(instring, charset) {
     var outstring = textToSubURI.ConvertAndEscape(charset, instring);
+    outstring = outstring.replace("%0D%0A", "+");
+    outstring = outstring.replace("%0D", "+");
+    outstring = outstring.replace("%0A", "+");
     return outstring;
   }
   function doSubstitution(instring, data, charset, type) {
