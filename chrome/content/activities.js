@@ -953,7 +953,10 @@
     var dochead = content.document.getElementsByTagName("head")[0];
     var links = dochead.getElementsByTagName("link");
     if (links.length > 0) {
-      var popup;
+      var urlbarpopup = document.getElementById("activities-urlbar-menupopup");
+      for(var j=urlbarpopup.childNodes.length - 1; j>=0; j--) {
+        urlbarpopup.removeChild(urlbarpopup.childNodes.item(j));
+      }
       for (let i=0; i < links.length; i++) {
         if ((links[i].getAttribute("rel") == "service") &&
             (links[i].getAttribute("type") == "application/openservicedescription+xml")) {
@@ -971,11 +974,6 @@
           if (alreadyAdded) {
             continue;
           }
-          if (!popup) {
-            popup = document.createElement("menupopup");
-            popup.position = "after_end";
-            popup.setAttribute("position", popup.position);
-          }
           var tempMenu = document.createElement("menuitem");
           tempMenu.label = addToString.replace(/%S/,title);
           tempMenu.setAttribute("label", tempMenu.label);
@@ -983,17 +981,11 @@
                                     function(event){window.external.addService(uri.spec);},
                                     true);
 
-          popup.appendChild(tempMenu);
+          urlbarpopup.appendChild(tempMenu);
         }
       }
-      if (popup) {
-        var urlbaricon = document.getElementById("activities-urlbar-icon");
-        urlbaricon.setAttribute("openService", "true");
-        for(var j=urlbaricon.childNodes.length - 1; j>=0; j--) {
-          urlbaricon.removeChild(urlbaricon.childNodes.item(j));
-          /* TO DO MAKE THIS bBETTER */
-        }
-        urlbaricon.appendChild(popup);
+      if (urlbarpopup.childNodes.length > 0) {
+        document.getElementById("activities-urlbar-icon").setAttribute("openService", "true");
         return;
       }
     }
