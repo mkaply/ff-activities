@@ -2,11 +2,12 @@ var Activities = {};
 
 (function () {
   var namespaceURI = "http://www.microsoft.com/schemas/openservicedescription/1.0";
-  var eTLDService;
-  var ioService;
   var prefBranch = null;
   var prefObserver;
   var openServiceObserver;
+  var eTLDService;
+  var ioService;
+  var textToSubURI;
   var searchWithString;
   var addToString;
   var previewTimerID;
@@ -127,7 +128,7 @@ var Activities = {};
     serviceObject.Verb = activity.getAttribute("category").replace(/^\s*|\s*$/g,'');
     /* Check if the activity is disabled in preferences */
     try {
-      serviceObject.Enabled = !prefBranch.getBoolPref(encodeURIComponent(serviceObject.Verb) + "." + serviceObject.Domain + ".disabled");
+      serviceObject.Enabled = !prefBranch.getBoolPref(encodeURI(serviceObject.Verb) + "." + serviceObject.Domain + ".disabled");
     } catch (ex) {
       serviceObject.Enabled = true;
     }
@@ -147,6 +148,8 @@ var Activities = {};
         serviceObject["Action"+i].preview.Action = preview.getAttribute("action").replace(/^\s*|\s*$/g,'');
         if (preview.hasAttribute("accept-charset")) {
           serviceObject["Action"+i].preview["Accept-charset"] = preview.getAttribute("accept-charset").replace(/^\s*|\s*$/g,'');
+        } else {
+          serviceObject["Action"+i].preview["Accept-charset"] = "utf-8";
         }
         if (preview.hasAttribute("enctype")) {
           serviceObject["Action"+i].preview.Enctype = preview.getAttribute("enctype").replace(/^\s*|\s*$/g,'');
@@ -176,6 +179,8 @@ var Activities = {};
       serviceObject["Action"+i].execute.Action = execute.getAttribute("action").replace(/^\s*|\s*$/g,'');
       if (execute.hasAttribute("accept-charset")) {
         serviceObject["Action"+i].execute["Accept-charset"] = execute.getAttribute("accept-charset").replace(/^\s*|\s*$/g,'');
+      } else {
+        serviceObject["Action"+i].execute["Accept-charset"] = "utf-8";
       }
       if (execute.hasAttribute("enctype")) {
         serviceObject["Action"+i].execute.Enctype = execute.getAttribute("enctype").replace(/^\s*|\s*$/g,'');
@@ -372,10 +377,17 @@ var Activities = {};
 
     }
   }
-  function doSubstitution(instring, data, context, type) {
+  function encodeParam(instring, charset) {
+    var outstring = textToSubURI.ConvertAndEscape(charset, instring);
+    outstring = outstring.replace("%0D%0A", "+");
+    outstring = outstring.replace("%0D", "+");
+    outstring = outstring.replace("%0A", "+");
+    return outstring;
+  }
+  function doSubstitution(instring, data, context, charset, type) {
     var newstring = instring;
-    newstring = newstring.replace("{documentTitle}", data.documentTitle);
-    newstring = newstring.replace("{documentTitle?}", data.documentTitle);
+    newstring = newstring.replace("{documentTitle}", encodeParam(data.documentTitle, charset));
+    newstring = newstring.replace("{documentTitle?}", encodeParam(data.documentTitle, charset));
     newstring = newstring.replace("{documentUrl}", data.documentUrl);
     newstring = newstring.replace("{documentUrl?}", data.documentUrl);
     if (context == "document") {
@@ -383,19 +395,19 @@ var Activities = {};
     }
     if (context == "selection") {
       if (type == "html") {
-        newstring = newstring.replace("{selection}", data.selectionHTML);
-        newstring = newstring.replace("{selection?}", data.selectionHTML);
+        newstring = newstring.replace("{selection}", encodeParam(data.selectionHTML, charset));
+        newstring = newstring.replace("{selection?}", encodeParam(data.selectionHTML, charset));
       } else {
-        newstring = newstring.replace("{selection}", data.selection);
-        newstring = newstring.replace("{selection?}", data.selection);
+        newstring = newstring.replace("{selection}", encodeParam(data.selection, charset));
+        newstring = newstring.replace("{selection?}", encodeParam(data.selection, charset));
       }
       return newstring;
     }
     if (context == "link") {
-      newstring = newstring.replace("{linkText}", data.linkText);
-      newstring = newstring.replace("{linkText?}", data.linkText);
-      newstring = newstring.replace("{linkTitle}", data.linkText);
-      newstring = newstring.replace("{linkTitle?}", data.linkText);
+      newstring = newstring.replace("{linkText}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkText?}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkTitle}", encodeParam(data.linkText, charset));
+      newstring = newstring.replace("{linkTitle?}", encodeParam(data.linkText, charset));
       newstring = newstring.replace("{link}", data.link);
       newstring = newstring.replace("{link?}", data.link);
       return newstring;
@@ -412,15 +424,15 @@ var Activities = {};
           }
           if (Microformats[semanticObjectType].properties[property].plural) {
             if ((type == "html") && semanticObject[property].toHTML) {
-              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].toHTML().join(',')));
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeParam(semanticObject[property].toHTML().join(','), charset));
             } else {
-              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].join(',')));
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeParam(semanticObject[property].join(','), charset));
             }
           } else {
             if ((type == "html") && semanticObject[property].toHTML) {
-              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property].toHTML()));
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeParam(semanticObject[property].toHTML()));
             } else {
-              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeURIComponent(semanticObject[property]));
+              newstring = newstring.replace(RegExp('{' + property + '}', "g"), encodeParam(semanticObject[property], charset));
             }
           }
           if (Microformats[semanticObjectType].properties[property].subproperties) {
@@ -428,15 +440,15 @@ var Activities = {};
               if (semanticObject[property][subproperty]) {
                 if (Microformats[semanticObjectType].properties[property].subproperties[subproperty].plural) {
                   if ((type == "html") && semanticObject[property][subproperty].toHTML) {  
-                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].toHTML().join(',')));
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeParam(semanticObject[property][subproperty].toHTML().join(','), charset));
                   } else {
-                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].join(',')));
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeParam(semanticObject[property][subproperty].join(','), charset));
                   }
                 } else {
                   if ((type == "html") && semanticObject[property][subproperty].toHTML) {
-                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty].toHTML()));
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeParam(semanticObject[property][subproperty].toHTML(), charset));
                   } else {
-                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeURIComponent(semanticObject[property][subproperty]));
+                    newstring = newstring.replace(RegExp('{' + property + '.' + subproperty + '}', "g"), encodeParam(semanticObject[property][subproperty], charset));
                   }
                  }
                } else {
@@ -490,7 +502,7 @@ var Activities = {};
         query += "&";
       }
       if (action["Parameter"+i].Value) {
-        var Value = doSubstitution(action["Parameter"+i].Value, activity, context, action["Parameter"+i].Type);
+        var Value = doSubstitution(action["Parameter"+i].Value, activity, context, action["Accept-charset"], action["Parameter"+i].Type);
       } else if (action["Parameter"+i].Script) {
         // @MAK TODO - BETTER CONTEXT
         var s = Components.utils.Sandbox("about:blank");
@@ -539,7 +551,7 @@ var Activities = {};
         query += Value;
       }
     }
-    var url = doSubstitution(action.Action, activity, context);
+    var url = doSubstitution(action.Action, activity, context, action["Accept-charset"]);
     if (action.Method.toLowerCase() == "post") {
       var stringStream =  Components.classes["@mozilla.org/io/string-input-stream;1"].
                                      createInstance(Components.interfaces.nsIStringInputStream);
@@ -555,11 +567,7 @@ var Activities = {};
       } else {
         postData.addHeader("Content-Type", "application/x-www-form-urlencoded");
       }
-      if (action["Accept-charset"]) {
-        postData.addHeader("Accept-Charset", action["Accept-charset"]);
-      } else {
-        postData.addHeader("Accept-Charset", "utf-8");
-      }
+      postData.addHeader("Accept-Charset", action["Accept-charset"]);
       postData.addContentLength = true;
       postData.setData(stringStream);
     } else {
@@ -650,7 +658,7 @@ var Activities = {};
     return mfNode;
   }
   
-  function executeSearch(selection, engine, event, options) {
+  function executeSearch(event, options) {
     if (options) {
       var preview = options.preview;
       var click = options.click;
@@ -675,7 +683,9 @@ var Activities = {};
       }
       return;
     }
-    var submission = engine.getSubmission(decodeURIComponent(selection), null);
+    var selection = event.target.activity.selection;
+    var engine = event.target.engine;
+    var submission = engine.getSubmission(selection, null);
     /* Might want to handle postData someday */
     openUILink(submission.uri.spec, event);
     if (click) {
@@ -739,12 +749,14 @@ var Activities = {};
     }
     tempMenu["class"] = "menuitem-iconic";
     tempMenu.setAttribute("class", tempMenu["class"]);
+    tempMenu.activity = data;
+    tempMenu.engine = engine;
     tempMenu.addEventListener("command",
-                              function(event){executeSearch(data.selection, engine, event)},
+                              function(event){executeSearch(event)},
                               true);
-    tempMenu.addEventListener("click", function(event){executeSearch(data.selection, engine, event, {click:true})}, true);
+    tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
     tempMenu.addEventListener("mouseover",
-                              function(event){executeSearch(data.selection, engine, event, {preview:true})},
+                              function(event){executeSearch(event, {preview:true})},
                               true);
     event.target.insertBefore(tempMenu, menu);
     return true;
