@@ -1,3 +1,5 @@
+var Activities = {};
+
 (function () {
   var namespaceURI = "http://www.microsoft.com/schemas/openservicedescription/1.0";
   var prefBranch = null;
@@ -6,6 +8,11 @@
   var ioService;
   var textToSubURI;
   var searchWithString;
+  var previewTimerID;
+  var hidePreviewTimerID;
+  var hideContextMenuTimerID;
+  var internalHide = false;
+  var dontHide = false;
   services = [];
   function migrate() {
     const MODE_RDONLY   = 0x01;
@@ -317,13 +324,76 @@
     }
     /* Event listener so we can modify the page context menu */
     var menu = document.getElementById("contentAreaContextMenu");
-      menu.addEventListener("popupshowing",
-                            function(event){ contextPopupShowing(event)},
-                            false);
-    var menupopup = document.getElementById("activities-menupopup");
-    menupopup.addEventListener("popupshowing",
+    menu.addEventListener("popupshowing",
                           function(event){ contextPopupShowing(event)},
                           false);
+    menu.addEventListener("popuphiding",
+                          function(event){
+                            if (event.originalTarget == event.currentTarget) {
+                              if (document.getElementById("activities-preview-panel").state == "open") {
+                                if (!internalHide) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  if (hideContextMenuTimerID) {
+                                    window.clearTimeout(hideContextMenuTimerID);
+                                  }
+                                  hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
+                                } else {
+                                  hidePreviewWindow();
+                                }
+                              }
+                            }
+                          },
+                          false);
+    menu.addEventListener("mouseover",
+                          function(event){
+                          if ((event.target.id != "contentAreaContextMenu") &&
+                              (event.target.id != "activities-menupopup"))
+                            delayHidePreview();
+                          },
+                          false);
+    var menupopup = document.getElementById("activities-menupopup");
+    menupopup.addEventListener("popupshowing",
+                               function(event){
+                                 contextPopupShowing(event)
+                               },
+                               false);
+    var previewpanel = document.getElementById("activities-preview-panel");
+    
+    previewpanel.addEventListener("popuphiding",
+                                  function(event){
+                                    previewWindowHiding(event);
+                                    },
+                                  false);
+    previewpanel.addEventListener("click",
+                                  function(event){
+                                    dump("Click received for preview panel");
+                                    if ((event.target.nodeName == "A") &&
+                                        event.target.hasAttribute("target") &&
+                                        (event.target.getAttribute("target") == "_blank")) {
+                                      hidePreviewWindow();
+                                      document.getElementById("contentAreaContextMenu").hidePopup();
+                                    } else {
+                                      if (hideContextMenuTimerID) {
+                                        dontHide = true;
+                                        window.clearTimeout(hideContextMenuTimerID);
+                                        hideContextMenuTimerID = 0;
+                                      }
+                                    }
+                                  },
+                                  false);
+  
+  }
+  function hidemenu() {
+    if (dontHide) {
+      dontHide = false;
+      return;
+    }
+    internalHide = true;
+    dump("menu is being hidden via the timeout function");
+    hideContextMenuTimerID = 0;
+    document.getElementById("contentAreaContextMenu").hidePopup();
+    internalHide = false
   }
   /* This function handles the window closing piece, removing listeners and observers */
   function shutdown()
@@ -337,10 +407,60 @@
     menu.removeEventListener("popupshowing",
                              function(event){ contextPopupShowing(event)},
                              false);
+    menu.removeEventListener("mouseover",
+                             function(event){
+                             if ((event.target.id != "contentAreaContextMenu") &&
+                                 (event.target.id != "activities-menupopup"))
+                               delayHidePreview();
+                             },
+                             false);
+    menu.removeEventListener("popuphiding",
+                             function(event){
+                               if (event.originalTarget == event.currentTarget) {
+                                 if (document.getElementById("activities-preview-panel").state == "open") {
+                                   if (!internalHide) {
+                                     event.preventDefault();
+                                     event.stopPropagation();
+                                     if (hideContextMenuTimerID) {
+                                       window.clearTimeout(hideContextMenuTimerID);
+                                     }
+                                     hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
+                                   } else {
+                                     hidePreviewWindow();
+                                   }
+                                 }
+                               }
+                             },
+                             false);
     var menupopup = document.getElementById("activities-menupopup");
     menupopup.removeEventListener("popupshowing",
-                          function(event){ contextPopupShowing(event)},
-                          false);
+                                  function(event){
+                                    contextPopupShowing(event)
+                                  },
+                                  false);
+    var previewpanel = document.getElementById("activities-preview-panel");     
+    previewpanel.removeEventListener("popuphiding",
+                                     function(event){
+                                       previewWindowHiding(event);
+                                       },
+                                     false);
+    previewpanel.removeEventListener("click",
+                                     function(event){
+                                       dump("Click received for preview panel");
+                                       if ((event.target.nodeName == "A") &&
+                                           event.target.hasAttribute("target") &&
+                                           (event.target.getAttribute("target") == "_blank")) {
+                                         hidePreviewWindow();
+                                         document.getElementById("contentAreaContextMenu").hidePopup();
+                                       } else {
+                                         if (hideContextMenuTimerID) {
+                                           dontHide = true;
+                                           window.clearTimeout(hideContextMenuTimerID);
+                                           hideContextMenuTimerID = 0;
+                                         }
+                                       }
+                                     },
+                                     false);
   }
   /* if it is a post, set src to about:blank and do the post in the load listener */
   function iframeLoad() {
@@ -407,16 +527,11 @@
     }
     var activity = event.target.activity;
     if (preview) {
+      if (hidePreviewTimerID) {
+        window.clearTimeout(hidePreviewTimerID);
+      }
       if (!event.target.action.HasPreview) {
-        var popup = document.getElementById("activities-preview-panel");
-        if (popup) {
-          popup.hidePopup();
-        }
-        var iframe = document.getElementById("activities-preview-iframe");
-        if (iframe) {
-          iframe.src = "about:blank";
-          iframe.setAttribute("src", iframe.src);
-        }
+        hidePreviewWindow()
         return;
       }
       var action = event.target.action.preview;
@@ -493,8 +608,9 @@
         if (popup.nodeName.toLowerCase() == "panel") {
           popup.width = 326;
           popup.height = 246;
-          popup.showPopup(null, contextmenu.boxObject.screenX-popup.width,
-                          event.screenY-25, "popup");
+//          popup.showPopup(contextmenu, 0,
+//                          0, "popup");
+          popup.openPopup(contextmenu, "end_after", 0, 0, false, null);
         } else {
           popup.showPopup(contextmenu, event.screenX,
                           event.screenY-25, "popup");
@@ -510,6 +626,48 @@
         closeMenus(event.target);
       }
     }
+  }
+  function previewWindowHiding(event) {
+    if (!event.target.timeout || (event.target.timeout == false)) {
+      var menu = document.getElementById("contentAreaContextMenu");
+//      menu.hidePopup();
+    }
+    event.target.timeout = false;
+  }
+  function hidePreviewWindow() {
+    if (document.getElementById("activities-preview-panel").state != "open") {
+      return;
+    }
+    if (previewTimerID) {
+      window.clearTimeout(previewTimerID);
+    }
+    var popup = document.getElementById('activities-preview-panel');
+    if (popup) {
+      popup.timeout = true;
+      popup.hidePopup()
+    }
+    var iframe = document.getElementById("activities-preview-iframe");
+    if (iframe) {
+      iframe.src = "about:blank";
+      iframe.setAttribute("src", iframe.src);
+    }
+  }
+  function delayHidePreview(event, options) {
+    /* Should we check to make sure the node involved is microformat related ? */
+    if (document.getElementById("activities-preview-panel").state != "open") {
+      return;
+    }
+    if (hidePreviewTimerID) {
+      window.clearTimeout(hidePreviewTimerID);
+    }
+    hidePreviewTimerID = window.setTimeout(function () {hidePreviewWindow();}, 500);
+  }
+  function delayPreview(event, options) {
+    /* Should we check to make sure the node involved is microformat related ? */
+    if (previewTimerID) {
+      window.clearTimeout(previewTimerID);
+    }
+    previewTimerID = window.setTimeout(function () {execute(event, options);}, 500);
   }
   function isAdr(node) {
     if (typeof(Microformats) == "undefined") {
@@ -532,27 +690,11 @@
   
   function executeSearch(event, options) {
     if (options) {
-      var preview = options.preview;
       var click = options.click;
-    }
-    if (preview && !document.getElementById("activities-preview-panel")) {
-      return;
     }
   
     /* Only handle click in the middle button case */
     if (click && (event.button != 1)) {
-      return;
-    }
-    if (preview) {
-      var popup = document.getElementById("activities-preview-panel");
-      if (popup) {
-        popup.hidePopup();
-      }
-      var iframe = document.getElementById("activities-preview-iframe");
-      if (iframe) {
-        iframe.src = "about:blank";
-        iframe.setAttribute("src", iframe.src);
-      }
       return;
     }
     var selection = event.target.activity.selection;
@@ -581,9 +723,6 @@
                               function(event){executeSearch(event)},
                               true);
     tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
-    tempMenu.addEventListener("mouseover",
-                              function(event){executeSearch(event, {preview:true})},
-                              true);
     event.target.insertBefore(tempMenu, menu);
     return true;
   }
@@ -606,7 +745,10 @@
                                   true);
         tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
         tempMenu.addEventListener("mouseover",
-                                  function(event){execute(event, {preview:true})},
+                                  function(event){delayPreview(event, {preview:true})},
+                                  true);
+        tempMenu.addEventListener("mouseout",
+                                  function(event){ if (previewTimerID) window.clearTimeout(previewTimerID);},
                                   true);
         event.target.insertBefore(tempMenu, menu);
         return true;
@@ -789,7 +931,7 @@
                          .getService(Components.interfaces.nsIStringBundleService)
                          .createBundle("chrome://msft_activities/locale/activities.properties");
   try {
-    searchWithString = bundle.GetStringFromName("searchLabel");
+    searchWithString = bundle.GetStringFromName("searchWithString");
   } catch (ex) {
     searchWithString = "Search with %S";
   }
