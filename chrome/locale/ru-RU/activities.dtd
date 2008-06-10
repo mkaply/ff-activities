@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Activities - Способы обработки">
+<!ENTITY activities.label "Activities - Способы обработки">
+<!ENTITY moreActivities.label "Больше Activities">
+<!ENTITY findMoreActivities.label "Найти больше Activities...">
+<!ENTITY manageActivities.label "Управление Activities...">
+<!ENTITY manageActivitiesDialog.label "Управление Activities">
+<!ENTITY nameColumn.label "Имя">
+<!ENTITY addressColumn.label "Адрес">
+<!ENTITY categoryColumn.label "Категория">
+<!ENTITY statusColumn.label "Состояние">
+<!ENTITY enable.label "Включено">
+<!ENTITY disable.label "Отключено">
+<!ENTITY setDefault.label "Установить по-умолчанию">
+<!ENTITY removeDefault.label "Удалить умолчание">
+<!ENTITY delete.label "Удалить">
+<!ENTITY addMessage.description "Добавить этого Activity-провайдера?">
+<!ENTITY name.label "Имя:">
+<!ENTITY from.label "От:">
+<!ENTITY webAddress.label "Веб-адрес:">
+<!ENTITY type.label "Тип:">
+<!ENTITY makeDefault.label "Сделать его провайдером по-умолчанию для этого типа Activity">
+<!ENTITY addProvider.label "Добавить провайдера">
+<!ENTITY displayActivityButton.label "Отобразить кнопку выбора Activity">
