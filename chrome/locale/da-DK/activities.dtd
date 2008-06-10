@@ -1,23 +1,23 @@
-<!ENTITY activities.title "Activities">
-<!ENTITY activities.label "Activities">
-<!ENTITY moreActivities.label "More Activities">
-<!ENTITY findMoreActivities.label "Find More Activities...">
-<!ENTITY manageActivities.label "Manage Activities...">
-<!ENTITY manageActivitiesDialog.label "Manage Activities">
+<!ENTITY activities.title "Aktiviteter">
+<!ENTITY activities.label "Aktiviteter">
+<!ENTITY moreActivities.label "Flere aktiviteter">
+<!ENTITY findMoreActivities.label "Find flere aktiviteter...">
+<!ENTITY manageActivities.label "Håndter aktiviteter...">
+<!ENTITY manageActivitiesDialog.label "Håndter aktiviteter">
 <!ENTITY nameColumn.label "Navn">
-<!ENTITY addressColumn.label "Address">
-<!ENTITY categoryColumn.label "Category">
+<!ENTITY addressColumn.label "Adresse">
+<!ENTITY categoryColumn.label "Kategori">
 <!ENTITY statusColumn.label "Status">
 <!ENTITY enable.label "Aktiver">
 <!ENTITY disable.label "Deaktiver">
-<!ENTITY setDefault.label "Set As Default">
-<!ENTITY removeDefault.label "Remove as Default">
+<!ENTITY setDefault.label "Sæt som standard">
+<!ENTITY removeDefault.label "Slet som standard">
 <!ENTITY delete.label "Slet">
-<!ENTITY addMessage.description "Do you want to add this activity provider?">
+<!ENTITY addMessage.description "Ønsker du at tilføje denne aktivitet?">
 <!ENTITY name.label "Navn:">
 <!ENTITY from.label "Fra:">
-<!ENTITY webAddress.label "Web address:">
-<!ENTITY type.label "Type:">
+<!ENTITY webAddress.label "Net addresse:">
+<!ENTITY type.label "Tast:">
 <!ENTITY makeDefault.label "Make this my default provider for this type of activity">
 <!ENTITY addProvider.label "Add Provider">
 <!ENTITY displayActivityButton.label "Display Activity button on selection">
