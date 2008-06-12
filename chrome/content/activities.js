@@ -11,6 +11,10 @@ var Activities = {};
   var searchWithString;
   var addToString;
   var previewTimerID;
+  var hidePreviewTimerID;
+  var hideContextMenuTimerID;
+  var internalHide = false;
+  var dontHide = false;
   services = [];
   function migrate() {
     const MODE_RDONLY   = 0x01;
@@ -319,7 +323,6 @@ var Activities = {};
         switch (data) {
         case "add":
         case "delete":
-        case "change":
           reloadActions();
           detectOpenService();
           break;
@@ -332,15 +335,27 @@ var Activities = {};
     }
     /* Event listener so we can modify the page context menu */
     var menu = document.getElementById("contentAreaContextMenu");
-      menu.addEventListener("popupshowing",
-                            function(event){ contextPopupShowing(event)},
-                            false);
+    menu.addEventListener("popupshowing", contextPopupShowing, false);
+    menu.addEventListener("popuphiding", contextPopupHiding, false);
+    menu.addEventListener("mouseover", delayHidePreview, false);
+
     var menupopup = document.getElementById("activities-menupopup");
-    menupopup.addEventListener("popupshowing",
-                          function(event){ contextPopupShowing(event)},
-                          false);
-    window.document.getElementById("content").addEventListener("pageshow", function(e) { detectOpenService(); }, true);
-    getBrowser().tabContainer.addEventListener("select", function(e) { detectOpenService(e); }, true);
+    menupopup.addEventListener("popupshowing", contextPopupShowing, false);
+
+    var previewpanel = document.getElementById("activities-preview-panel");
+    previewpanel.addEventListener("popuphiding", previewWindowHiding, false);
+    previewpanel.addEventListener("click", previewWindowClick, false);
+  }
+  function hidemenu() {
+    if (dontHide) {
+      dontHide = false;
+      return;
+    }
+    internalHide = true;
+    dump("menu is being hidden via the timeout function");
+    hideContextMenuTimerID = 0;
+    document.getElementById("contentAreaContextMenu").hidePopup();
+    internalHide = false
   }
   /* This function handles the window closing piece, removing listeners and observers */
   function shutdown()
@@ -349,15 +364,19 @@ var Activities = {};
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                             .getService(Components.interfaces.nsIObserverService);
     observerService.removeObserver(openServiceObserver, "openService");
+
     /* Remove page context menu listener */
     var menu = document.getElementById("contentAreaContextMenu");
-    menu.removeEventListener("popupshowing",
-                             function(event){ contextPopupShowing(event)},
-                             false);
+    menu.removeEventListener("popupshowing", contextPopupShowing, false);
+    menu.removeEventListener("mouseover", delayHidePreview, false);
+    menu.removeEventListener("popuphiding", contextPopupHiding, false);
+
     var menupopup = document.getElementById("activities-menupopup");
-    menupopup.removeEventListener("popupshowing",
-                          function(event){ contextPopupShowing(event)},
-                          false);
+    menupopup.removeEventListener("popupshowing", contextPopupShowing, false);
+
+    var previewpanel = document.getElementById("activities-preview-panel");     
+    previewpanel.removeEventListener("popuphiding", previewWindowHiding, false);
+    previewpanel.removeEventListener("click", previewWindowClick, false);
   }
   /* if it is a post, set src to about:blank and do the post in the load listener */
   function iframeLoad() {
@@ -368,13 +387,8 @@ var Activities = {};
         var postData = iframe.activities_postData;
         delete iframe.activities_url;
         delete iframe.activities_postData;
-        iframe.webNavigation.loadURI(url,
-                                     0,
-                                     null,
-                                     postData,
-                                     null);
+        iframe.webNavigation.loadURI(url, 0, null, postData, null);
       }
-
     }
   }
   function encodeParam(instring, charset) {
@@ -394,7 +408,7 @@ var Activities = {};
       return newstring;
     }
     if (context == "selection") {
-      if (type == "html") {
+      if (type  && (type == "html")) {
         newstring = newstring.replace("{selection}", encodeParam(data.selectionHTML, charset));
         newstring = newstring.replace("{selection?}", encodeParam(data.selectionHTML, charset));
       } else {
@@ -463,6 +477,12 @@ var Activities = {};
     }
     return newstring;
   }
+  function executeClick(event) {
+    execute(event, {click:true});
+  }
+  function executePreview(event) {
+    execute(event, {preview:true});
+  }
   function execute(event, options) {
     if (options) {
       var preview = options.preview;
@@ -479,16 +499,11 @@ var Activities = {};
     var activity = event.target.activity;
     var context = event.target.context;
     if (preview) {
+      if (hidePreviewTimerID) {
+        window.clearTimeout(hidePreviewTimerID);
+      }
       if (!event.target.action.HasPreview) {
-        var popup = document.getElementById("activities-preview-panel");
-        if (popup) {
-          popup.hidePopup();
-        }
-        var iframe = document.getElementById("activities-preview-iframe");
-        if (iframe) {
-          iframe.src = "about:blank";
-          iframe.setAttribute("src", iframe.src);
-        }
+        hidePreviewWindow()
         return;
       }
       var action = event.target.action.preview;
@@ -596,7 +611,7 @@ var Activities = {};
           } else {
             iframe.activities_postData = postData;
             iframe.activities_url = action.Action;
-            iframe.addEventListener("DOMContentLoaded", iframeLoad(), false);
+            iframe.addEventListener("DOMContentLoaded", iframeLoad, false);
           }
         } else {
           iframe.src = url;
@@ -608,8 +623,9 @@ var Activities = {};
         if (popup.nodeName.toLowerCase() == "panel") {
           popup.width = 326;
           popup.height = 246;
-          popup.showPopup(null, contextmenu.boxObject.screenX-popup.width,
-                          event.screenY-25, "popup");
+//          popup.showPopup(contextmenu, 0,
+//                          0, "popup");
+          popup.openPopup(contextmenu, "end_after", 0, 0, false, null);
         } else {
           popup.showPopup(contextmenu, event.screenX,
                           event.screenY-25, "popup");
@@ -626,23 +642,66 @@ var Activities = {};
       }
     }
   }
+  function previewWindowClick(event) {
+    if ((event.target.nodeName == "A") &&
+        event.target.hasAttribute("target") &&
+        (event.target.getAttribute("target") == "_blank")) {
+      hidePreviewWindow();
+      document.getElementById("contentAreaContextMenu").hidePopup();
+    } else {
+      if (hideContextMenuTimerID) {
+        dontHide = true;
+        window.clearTimeout(hideContextMenuTimerID);
+        hideContextMenuTimerID = 0;
+      }
+    }
+  }
+  function previewWindowHiding(event) {
+    if (!event.target.timeout || (event.target.timeout == false)) {
+      var menu = document.getElementById("contentAreaContextMenu");
+//      menu.hidePopup();
+    }
+    event.target.timeout = false;
+  }
   function hidePreviewWindow() {
+    if (document.getElementById("activities-preview-panel").state != "open") {
+      return;
+    }
     if (previewTimerID) {
       window.clearTimeout(previewTimerID);
     }
     var popup = document.getElementById('activities-preview-panel');
     if (popup) {
+      popup.timeout = true;
       popup.hidePopup()
     }
+    var iframe = document.getElementById("activities-preview-iframe");
+    if (iframe) {
+      iframe.src = "about:blank";
+      iframe.setAttribute("src", iframe.src);
+    }
   }
-  /* hidePreviewWindow is a global */
-  Activities.hidePreviewWindow = hidePreviewWindow;
-  function delayPreview(event, options) {
+  function delayHidePreview(event) {
+    if ((event.target.id == "contentAreaContextMenu") ||
+        (event.target.id == "activities-menupopup")) {
+      return;
+    }
+
+    /* Should we check to make sure the node involved is microformat related ? */
+    if (document.getElementById("activities-preview-panel").state != "open") {
+      return;
+    }
+    if (hidePreviewTimerID) {
+      window.clearTimeout(hidePreviewTimerID);
+    }
+    hidePreviewTimerID = window.setTimeout(function () {hidePreviewWindow();}, 500);
+  }
+  function delayPreview(event) {
     /* Should we check to make sure the node involved is microformat related ? */
     if (previewTimerID) {
       window.clearTimeout(previewTimerID);
     }
-    previewTimerID = window.setTimeout(function () {execute(event, options);}, 500);
+    previewTimerID = window.setTimeout(function () {executePreview(event);}, 500);
   }
   function isMicroformat(node) {
     if (typeof(Microformats) == "undefined") {
@@ -657,30 +716,18 @@ var Activities = {};
     }
     return mfNode;
   }
+
+  function executeSearchClick(event) {
+    executeSearch(event, {click:true});
+  }
   
   function executeSearch(event, options) {
     if (options) {
-      var preview = options.preview;
       var click = options.click;
-    }
-    if (preview && !document.getElementById("activities-preview-panel")) {
-      return;
     }
   
     /* Only handle click in the middle button case */
     if (click && (event.button != 1)) {
-      return;
-    }
-    if (preview) {
-      var popup = document.getElementById("activities-preview-panel");
-      if (popup) {
-        popup.hidePopup();
-      }
-      var iframe = document.getElementById("activities-preview-iframe");
-      if (iframe) {
-        iframe.src = "about:blank";
-        iframe.setAttribute("src", iframe.src);
-      }
       return;
     }
     var selection = event.target.activity.selection;
@@ -719,14 +766,11 @@ var Activities = {};
     }
     window.external.addService(uri.spec);
   }
+
   function addServiceDownload(uri, title, menu, event) {
     var tempMenu = document.createElement("menuitem");
     tempMenu.label = addToString.replace(/%S/,title);
     tempMenu.setAttribute("label", tempMenu.label);
-//    if (engine.iconURI) {
-//      tempMenu.image = engine.iconURI.spec;
-//      tempMenu.setAttribute("image", tempMenu.image);
-//    }
     tempMenu["class"] = "menuitem-iconic";
     tempMenu.setAttribute("class", tempMenu["class"]);
     tempMenu.addEventListener("command",
@@ -739,6 +783,7 @@ var Activities = {};
     event.target.insertBefore(tempMenu, menu);
     return true;
   }
+
   function addSearch(engine, data, menu, event) {
     var tempMenu = document.createElement("menuitem");
     tempMenu.label = searchWithString.replace(/%S/,engine.name);
@@ -752,15 +797,13 @@ var Activities = {};
     tempMenu.activity = data;
     tempMenu.engine = engine;
     tempMenu.addEventListener("command",
-                              function(event){executeSearch(event)},
+                              executeSearch,
                               true);
-    tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
-    tempMenu.addEventListener("mouseover",
-                              function(event){executeSearch(event, {preview:true})},
-                              true);
+    tempMenu.addEventListener("click", executeSearchClick, true);
     event.target.insertBefore(tempMenu, menu);
     return true;
   }
+
   function addMenu(activity, data, popupContext, menu, event) {
     for (let j=1; j <= activity.ActionCount; j++) {
       if (popupContext[activity["Action"+j].Context]) {
@@ -790,17 +833,37 @@ var Activities = {};
         tempMenu.action = activity["Action"+j];
         tempMenu.context = activity["Action"+j].Context;
         tempMenu.addEventListener("command",
-                                  function(event){execute(event)},
+                                  execute,
                                   true);
-        tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
+        tempMenu.addEventListener("click", executeClick, true);
         tempMenu.addEventListener("mouseover",
-                                  function(event){delayPreview(event, {preview:true})},
+                                  delayPreview,
+                                  true);
+        tempMenu.addEventListener("mouseout",
+                                  function(event){ if (previewTimerID) window.clearTimeout(previewTimerID);},
                                   true);
         event.target.insertBefore(tempMenu, menu);
         return true;
       }
     }
     return false;
+  }
+  
+  function contextPopupHiding(event) {
+    if (event.originalTarget == event.currentTarget) {
+      if (document.getElementById("activities-preview-panel").state == "open") {
+        if (!internalHide) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (hideContextMenuTimerID) {
+            window.clearTimeout(hideContextMenuTimerID);
+          }
+          hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
+        } else {
+          hidePreviewWindow();
+        }
+      }
+    }
   }
   function contextPopupShowing(event) {
     if ((event.target.id != "contentAreaContextMenu") && (event.target.id != "activities-menupopup")) {
@@ -811,13 +874,11 @@ var Activities = {};
       /* Remove existing menuitems */
       var separator = document.getElementById("activities-separator");
       while (separator.nextSibling && (separator.nextSibling.id != "activities-menu")) {
-        separator.nextSibling.removeEventListener("command",
-                                                  function(event){execute(event)},
-                                                  true);
-        separator.nextSibling.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-        separator.nextSibling.removeEventListener("mouseover",
-                                                  function(event){execute(event, {preview:true})},
-                                                  true);
+        separator.nextSibling.removeEventListener("command", execute, true);
+        separator.nextSibling.removeEventListener("command", executeSearch, true);
+        separator.nextSibling.removeEventListener("click", executeClick, true);
+        separator.nextSibling.removeEventListener("click", executeSearchClick, true);
+        separator.nextSibling.removeEventListener("mouseover", delayPreview, true);
         separator.nextSibling.parentNode.removeChild(separator.nextSibling);
       }
     } else {
@@ -825,13 +886,11 @@ var Activities = {};
       for(let i=menupopup.childNodes.length - 1; i >= 0; i--) {
         if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
              (menupopup.childNodes.item(i).id != "manage-activities")) {
-          menupopup.removeEventListener("command",
-                                        function(event){execute(event)},
-                                        true);
-          menupopup.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-          menupopup.removeEventListener("mouseover",
-                                    function(event){execute(event, {preview:true})},
-                                    true);
+          menupopup.removeEventListener("command", execute, true);
+          menupopup.removeEventListener("command", executeSearch, true);
+          menupopup.removeEventListener("click", executeClick, true);
+          menupopup.removeEventListener("click", executeSearchClick, true);
+          menupopup.removeEventListener("mouseover", delayPreview, true);
           menupopup.removeChild(menupopup.childNodes.item(i));
         }
       }
@@ -858,10 +917,10 @@ var Activities = {};
     if (gContextMenu.isContentSelection()) {
       popupContext["selection"] = true;
       var selection = document.commandDispatcher.focusedWindow.getSelection();
-      data.selection = encodeURIComponent(selection.toString());
+      data.selection = selection.toString();
       var div = content.document.createElement("div");
       div.appendChild(selection.getRangeAt(0).cloneContents());
-      data.selectionHTML = encodeURIComponent(div.innerHTML);
+      data.selectionHTML = div.innerHTML;
     }
     if ((mfNode = isMicroformat(gContextMenu.target))) {
       data.microformat = true;
@@ -914,18 +973,18 @@ var Activities = {};
       var addedSearch = false;
       for (let i in services) {
         var addSeparator = false;
-        if (!addedSearch && popupContext["selection"] && (searchWithString < i)) {
-          if (!prevService || (searchWithString > prevService)) {
-            /* Enumerate through search services and add each */
-            var engines = ss.getVisibleEngines({ });
-            for (let j=0; j < engines.length; j++) {
-              addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
+          if (!addedSearch && popupContext["selection"] && (searchWithString < i)) {
+            if (!prevService || (searchWithString > prevService)) {
+              /* Enumerate through search services and add each */
+              var engines = ss.getVisibleEngines({ });
+              for (let j=0; j < engines.length; j++) {
+                addSearch(engines[j], data, document.getElementById("find-more-activities"), event);
+              }
+              event.target.insertBefore(document.createElement("menuseparator"),
+                                        document.getElementById("find-more-activities"));
+              addedSearch = true;
             }
-            event.target.insertBefore(document.createElement("menuseparator"),
-                                      document.getElementById("find-more-activities"));
-            addedSearch = true;
           }
-        }
         for (let activity_name in services[i]) {
           var activity = services[i][activity_name];
           if (!activity.Enabled) {
@@ -940,7 +999,7 @@ var Activities = {};
                                     document.getElementById("find-more-activities"));
         }
       }
-      if (popupContext["selection"] && !addedSearch) {
+      if (popupContext["selection"]  && !addedSearch) {
         /* Enumerate through search services and add each */
         var engines = ss.getVisibleEngines({ });
         for (let j=0; j < engines.length; j++) {
@@ -980,6 +1039,16 @@ var Activities = {};
         }
       }
     }
+  }
+  
+  function dump(message) {
+    var consoleService = Components.classes["@mozilla.org/consoleservice;1"].
+                                    getService(Components.interfaces.nsIConsoleService);
+    var scriptError = Components.classes["@mozilla.org/scripterror;1"].
+                                 createInstance(Components.interfaces.nsIScriptError);
+    scriptError.init("Activities: " + message, content.document.location.href, null, 0, 
+                     null, 0, 0);
+    consoleService.logMessage(scriptError);
   }
   
   function detectOpenService() {
@@ -1025,7 +1094,7 @@ var Activities = {};
     document.getElementById("activities-urlbar-icon").removeAttribute("openService");
     return;
   }
-
+ 
   if (typeof(Microformats) == "undefined") {
     /* Attempt to use the Microformats module if available (Firefox 3) */
     if (Components.utils.import) {
@@ -1050,7 +1119,11 @@ var Activities = {};
     eTLDService = Components.classes["@mozilla.org/network/effective-tld-service;1"]
                             .getService(Components.interfaces.nsIEffectiveTLDService);
   }
-  ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+  textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
+                           .getService(Components.interfaces.nsITextToSubURI);
+  ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                        .getService(Components.interfaces.nsIIOService);
+
 
   var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
                          .getService(Components.interfaces.nsIStringBundleService)
@@ -1067,10 +1140,9 @@ var Activities = {};
     addToString = 'Add "%S"';
   }
 
-
   reloadActions();
   /* Attach listeners for page load */ 
-  window.addEventListener("load", function(e)   { startup(); }, false);
-  window.addEventListener("unload", function(e) { shutdown(); }, false);
+  window.addEventListener("load", startup, false);
+  window.addEventListener("unload", shutdown, false);
 })();
 
