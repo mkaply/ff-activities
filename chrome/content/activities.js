@@ -324,65 +324,16 @@ var Activities = {};
     }
     /* Event listener so we can modify the page context menu */
     var menu = document.getElementById("contentAreaContextMenu");
-    menu.addEventListener("popupshowing",
-                          function(event){ contextPopupShowing(event)},
-                          false);
-    menu.addEventListener("popuphiding",
-                          function(event){
-                            if (event.originalTarget == event.currentTarget) {
-                              if (document.getElementById("activities-preview-panel").state == "open") {
-                                if (!internalHide) {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  if (hideContextMenuTimerID) {
-                                    window.clearTimeout(hideContextMenuTimerID);
-                                  }
-                                  hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
-                                } else {
-                                  hidePreviewWindow();
-                                }
-                              }
-                            }
-                          },
-                          false);
-    menu.addEventListener("mouseover",
-                          function(event){
-                          if ((event.target.id != "contentAreaContextMenu") &&
-                              (event.target.id != "activities-menupopup"))
-                            delayHidePreview();
-                          },
-                          false);
+    menu.addEventListener("popupshowing", contextPopupShowing, false);
+    menu.addEventListener("popuphiding", contextPopupHiding, false);
+    menu.addEventListener("mouseover", delayHidePreview, false);
+
     var menupopup = document.getElementById("activities-menupopup");
-    menupopup.addEventListener("popupshowing",
-                               function(event){
-                                 contextPopupShowing(event)
-                               },
-                               false);
+    menupopup.addEventListener("popupshowing", contextPopupShowing, false);
+
     var previewpanel = document.getElementById("activities-preview-panel");
-    
-    previewpanel.addEventListener("popuphiding",
-                                  function(event){
-                                    previewWindowHiding(event);
-                                    },
-                                  false);
-    previewpanel.addEventListener("click",
-                                  function(event){
-                                    dump("Click received for preview panel");
-                                    if ((event.target.nodeName == "A") &&
-                                        event.target.hasAttribute("target") &&
-                                        (event.target.getAttribute("target") == "_blank")) {
-                                      hidePreviewWindow();
-                                      document.getElementById("contentAreaContextMenu").hidePopup();
-                                    } else {
-                                      if (hideContextMenuTimerID) {
-                                        dontHide = true;
-                                        window.clearTimeout(hideContextMenuTimerID);
-                                        hideContextMenuTimerID = 0;
-                                      }
-                                    }
-                                  },
-                                  false);
-  
+    previewpanel.addEventListener("popuphiding", previewWindowHiding, false);
+    previewpanel.addEventListener("click", previewWindowClick, false);
   }
   function hidemenu() {
     if (dontHide) {
@@ -402,65 +353,19 @@ var Activities = {};
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                             .getService(Components.interfaces.nsIObserverService);
     observerService.removeObserver(openServiceObserver, "openService");
+
     /* Remove page context menu listener */
     var menu = document.getElementById("contentAreaContextMenu");
-    menu.removeEventListener("popupshowing",
-                             function(event){ contextPopupShowing(event)},
-                             false);
-    menu.removeEventListener("mouseover",
-                             function(event){
-                             if ((event.target.id != "contentAreaContextMenu") &&
-                                 (event.target.id != "activities-menupopup"))
-                               delayHidePreview();
-                             },
-                             false);
-    menu.removeEventListener("popuphiding",
-                             function(event){
-                               if (event.originalTarget == event.currentTarget) {
-                                 if (document.getElementById("activities-preview-panel").state == "open") {
-                                   if (!internalHide) {
-                                     event.preventDefault();
-                                     event.stopPropagation();
-                                     if (hideContextMenuTimerID) {
-                                       window.clearTimeout(hideContextMenuTimerID);
-                                     }
-                                     hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
-                                   } else {
-                                     hidePreviewWindow();
-                                   }
-                                 }
-                               }
-                             },
-                             false);
+    menu.removeEventListener("popupshowing", contextPopupShowing, false);
+    menu.removeEventListener("mouseover", delayHidePreview, false);
+    menu.removeEventListener("popuphiding", contextPopupHiding, false);
+
     var menupopup = document.getElementById("activities-menupopup");
-    menupopup.removeEventListener("popupshowing",
-                                  function(event){
-                                    contextPopupShowing(event)
-                                  },
-                                  false);
+    menupopup.removeEventListener("popupshowing", contextPopupShowing, false);
+
     var previewpanel = document.getElementById("activities-preview-panel");     
-    previewpanel.removeEventListener("popuphiding",
-                                     function(event){
-                                       previewWindowHiding(event);
-                                       },
-                                     false);
-    previewpanel.removeEventListener("click",
-                                     function(event){
-                                       dump("Click received for preview panel");
-                                       if ((event.target.nodeName == "A") &&
-                                           event.target.hasAttribute("target") &&
-                                           (event.target.getAttribute("target") == "_blank")) {
-                                         hidePreviewWindow();
-                                         document.getElementById("contentAreaContextMenu").hidePopup();
-                                       } else {
-                                         if (hideContextMenuTimerID) {
-                                           dontHide = true;
-                                           window.clearTimeout(hideContextMenuTimerID);
-                                           hideContextMenuTimerID = 0;
-                                         }
-                                       }
-                                     },
-                                     false);
+    previewpanel.removeEventListener("popuphiding", previewWindowHiding, false);
+    previewpanel.removeEventListener("click", previewWindowClick, false);
   }
   /* if it is a post, set src to about:blank and do the post in the load listener */
   function iframeLoad() {
@@ -471,13 +376,8 @@ var Activities = {};
         var postData = iframe.activities_postData;
         delete iframe.activities_url;
         delete iframe.activities_postData;
-        iframe.webNavigation.loadURI(url,
-                                     0,
-                                     null,
-                                     postData,
-                                     null);
+        iframe.webNavigation.loadURI(url, 0, null, postData, null);
       }
-
     }
   }
   function encodeParam(instring, charset) {
@@ -511,6 +411,12 @@ var Activities = {};
       newstring = newstring.replace("{link?}", data.link);
     }
     return newstring;
+  }
+  function executeClick(event) {
+    execute(event, {click:true});
+  }
+  function executePreview(event) {
+    execute(event, {preview:true});
   }
   function execute(event, options) {
     if (options) {
@@ -596,7 +502,7 @@ var Activities = {};
           } else {
             iframe.activities_postData = postData;
             iframe.activities_url = action.Action;
-            iframe.addEventListener("DOMContentLoaded", iframeLoad(), false);
+            iframe.addEventListener("DOMContentLoaded", iframeLoad, false);
           }
         } else {
           iframe.src = url;
@@ -627,6 +533,20 @@ var Activities = {};
       }
     }
   }
+  function previewWindowClick(event) {
+    if ((event.target.nodeName == "A") &&
+        event.target.hasAttribute("target") &&
+        (event.target.getAttribute("target") == "_blank")) {
+      hidePreviewWindow();
+      document.getElementById("contentAreaContextMenu").hidePopup();
+    } else {
+      if (hideContextMenuTimerID) {
+        dontHide = true;
+        window.clearTimeout(hideContextMenuTimerID);
+        hideContextMenuTimerID = 0;
+      }
+    }
+  }
   function previewWindowHiding(event) {
     if (!event.target.timeout || (event.target.timeout == false)) {
       var menu = document.getElementById("contentAreaContextMenu");
@@ -652,7 +572,12 @@ var Activities = {};
       iframe.setAttribute("src", iframe.src);
     }
   }
-  function delayHidePreview(event, options) {
+  function delayHidePreview(event) {
+    if ((event.target.id == "contentAreaContextMenu") ||
+        (event.target.id == "activities-menupopup")) {
+      return;
+    }
+
     /* Should we check to make sure the node involved is microformat related ? */
     if (document.getElementById("activities-preview-panel").state != "open") {
       return;
@@ -662,12 +587,12 @@ var Activities = {};
     }
     hidePreviewTimerID = window.setTimeout(function () {hidePreviewWindow();}, 500);
   }
-  function delayPreview(event, options) {
+  function delayPreview(event) {
     /* Should we check to make sure the node involved is microformat related ? */
     if (previewTimerID) {
       window.clearTimeout(previewTimerID);
     }
-    previewTimerID = window.setTimeout(function () {execute(event, options);}, 500);
+    previewTimerID = window.setTimeout(function () {executePreview(event);}, 500);
   }
   function isAdr(node) {
     if (typeof(Microformats) == "undefined") {
@@ -686,6 +611,10 @@ var Activities = {};
       }
     }
     return false;
+  }
+  
+  function executeSearchClick(event) {
+    executeSearch(event, {click:true});
   }
   
   function executeSearch(event, options) {
@@ -720,9 +649,9 @@ var Activities = {};
     tempMenu.activity = data;
     tempMenu.engine = engine;
     tempMenu.addEventListener("command",
-                              function(event){executeSearch(event)},
+                              executeSearch,
                               true);
-    tempMenu.addEventListener("click", function(event){executeSearch(event, {click:true})}, true);
+    tempMenu.addEventListener("click", executeSearchClick, true);
     event.target.insertBefore(tempMenu, menu);
     return true;
   }
@@ -741,11 +670,11 @@ var Activities = {};
         tempMenu.activity = data;
         tempMenu.action = activity["Action"+j];
         tempMenu.addEventListener("command",
-                                  function(event){execute(event)},
+                                  execute,
                                   true);
-        tempMenu.addEventListener("click", function(event){execute(event, {click:true})}, true);
+        tempMenu.addEventListener("click", executeClick, true);
         tempMenu.addEventListener("mouseover",
-                                  function(event){delayPreview(event, {preview:true})},
+                                  delayPreview,
                                   true);
         tempMenu.addEventListener("mouseout",
                                   function(event){ if (previewTimerID) window.clearTimeout(previewTimerID);},
@@ -756,6 +685,22 @@ var Activities = {};
     }
     return false;
   }
+  function contextPopupHiding(event) {
+    if (event.originalTarget == event.currentTarget) {
+      if (document.getElementById("activities-preview-panel").state == "open") {
+        if (!internalHide) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (hideContextMenuTimerID) {
+            window.clearTimeout(hideContextMenuTimerID);
+          }
+          hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
+        } else {
+          hidePreviewWindow();
+        }
+      }
+    }
+  }
   function contextPopupShowing(event) {
     if ((event.target.id != "contentAreaContextMenu") && (event.target.id != "activities-menupopup")) {
       return;
@@ -765,13 +710,11 @@ var Activities = {};
       /* Remove existing menuitems */
       var separator = document.getElementById("activities-separator");
       while (separator.nextSibling && (separator.nextSibling.id != "activities-menu")) {
-        separator.nextSibling.removeEventListener("command",
-                                                  function(event){execute(event)},
-                                                  true);
-        separator.nextSibling.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-        separator.nextSibling.removeEventListener("mouseover",
-                                                  function(event){execute(event, {preview:true})},
-                                                  true);
+        separator.nextSibling.removeEventListener("command", execute, true);
+        separator.nextSibling.removeEventListener("command", executeSearch, true);
+        separator.nextSibling.removeEventListener("click", executeClick, true);
+        separator.nextSibling.removeEventListener("click", executeSearchClick, true);
+        separator.nextSibling.removeEventListener("mouseover", delayPreview, true);
         separator.nextSibling.parentNode.removeChild(separator.nextSibling);
       }
     } else {
@@ -779,13 +722,11 @@ var Activities = {};
       for(let i=menupopup.childNodes.length - 1; i >= 0; i--) {
         if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
              (menupopup.childNodes.item(i).id != "manage-activities")) {
-          menupopup.removeEventListener("command",
-                                        function(event){execute(event)},
-                                        true);
-          menupopup.removeEventListener("click", function(event){execute(event, {click:true})}, true);
-          menupopup.removeEventListener("mouseover",
-                                    function(event){execute(event, {preview:true})},
-                                    true);
+          menupopup.removeEventListener("command", execute, true);
+          menupopup.removeEventListener("command", executeSearch, true);
+          menupopup.removeEventListener("click", executeClick, true);
+          menupopup.removeEventListener("click", executeSearchClick, true);
+          menupopup.removeEventListener("mouseover", delayPreview, true);
           menupopup.removeChild(menupopup.childNodes.item(i));
         }
       }
@@ -939,7 +880,7 @@ var Activities = {};
 
   reloadActions();
   /* Attach listeners for page load */ 
-  window.addEventListener("load", function(e)   { startup(); }, false);
-  window.addEventListener("unload", function(e) { shutdown(); }, false);
+  window.addEventListener("load", startup, false);
+  window.addEventListener("unload", shutdown, false);
 })();
 
