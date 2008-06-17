@@ -345,6 +345,8 @@ var Activities = {};
     var previewpanel = document.getElementById("activities-preview-panel");
     previewpanel.addEventListener("popuphiding", previewWindowHiding, false);
     previewpanel.addEventListener("click", previewWindowClick, false);
+    window.document.getElementById("content").addEventListener("pageshow", detectOpenService, true);
+    getBrowser().tabContainer.addEventListener("select", detectOpenService, true);
   }
   function hidemenu() {
     if (dontHide) {
@@ -377,6 +379,8 @@ var Activities = {};
     var previewpanel = document.getElementById("activities-preview-panel");     
     previewpanel.removeEventListener("popuphiding", previewWindowHiding, false);
     previewpanel.removeEventListener("click", previewWindowClick, false);
+    window.document.getElementById("content").removeEventListener("pageshow", detectOpenService, true);
+    getBrowser().tabContainer.removeEventListener("select", detectOpenService, true);
   }
   /* if it is a post, set src to about:blank and do the post in the load listener */
   function iframeLoad() {
