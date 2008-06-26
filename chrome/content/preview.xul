@@ -4,8 +4,8 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset id="mainPopupSet" >
-    <panel id="activities-preview-panel" noautofocus="true" noautohide="true" top="100" position="end_before">
-      <iframe type="content" id="activities-preview-iframe" height="240" width="320" src="about:blank" flex="1" style="overflow: hidden"/>
+    <panel id="activities-preview-panel" noautofocus="true" top="100" position="end_before">
+      <iframe id="activities-preview-iframe" height="240" width="320" src="about:blank" flex="1" style="overflow: hidden"/>
     </panel>
   </popupset>
 </overlay>
