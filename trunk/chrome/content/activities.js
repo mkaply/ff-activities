@@ -341,7 +341,6 @@ var Activities = {};
       return;
     }
     internalHide = true;
-    dump("menu is being hidden via the timeout function");
     hideContextMenuTimerID = 0;
     document.getElementById("contentAreaContextMenu").hidePopup();
     internalHide = false
@@ -391,8 +390,8 @@ var Activities = {};
     var newstring = instring;
     newstring = newstring.replace("{documentTitle}", encodeParam(data.documentTitle, charset));
     newstring = newstring.replace("{documentTitle?}", encodeParam(data.documentTitle, charset));
-    newstring = newstring.replace("{documentUrl}", data.documentUrl);
-    newstring = newstring.replace("{documentUrl?}", data.documentUrl);
+    newstring = newstring.replace("{documentUrl}", encodeParam(data.documentUrl, charset));
+    newstring = newstring.replace("{documentUrl?}", encodeParam(data.documentUrl, charset));
     if (data.context == "selection") {
       if (type  && (type == "html")) {
         newstring = newstring.replace("{selection}", encodeParam(data.selectionHTML, charset));
@@ -407,8 +406,8 @@ var Activities = {};
       newstring = newstring.replace("{linkText?}", encodeParam(data.linkText, charset));
       newstring = newstring.replace("{linkTitle}", encodeParam(data.linkText, charset));
       newstring = newstring.replace("{linkTitle?}", encodeParam(data.linkText, charset));
-      newstring = newstring.replace("{link}", data.link);
-      newstring = newstring.replace("{link?}", data.link);
+      newstring = newstring.replace("{link}", encodeParam(data.link, charset));
+      newstring = newstring.replace("{link?}", encodeParam(data.link, charset));
     }
     return newstring;
   }
