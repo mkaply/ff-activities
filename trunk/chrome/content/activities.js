@@ -574,8 +574,11 @@ var Activities = {};
     if ((event.target.nodeName == "A") &&
         event.target.hasAttribute("target") &&
         (event.target.getAttribute("target") == "_blank")) {
+      var tab = getBrowser().addTab(event.target.getAttribute("href"));
+      getBrowser().selectedTab = tab;
       hidePreviewWindow();
       document.getElementById("contentAreaContextMenu").hidePopup();
+	  event.preventDefault();
     } else {
       if (hideContextMenuTimerID) {
         dontHide = true;
