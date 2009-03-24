@@ -8,8 +8,8 @@
     <menu id="activities-menu" label="&moreActivities.label;">
       <menupopup id="activities-menupopup">
         <menuitem id="find-more-activities" label="&findMoreActivities.label;"
-                  oncommand="openUILink('http://ie.microsoft.com/activities/en-en/default.aspx', event);"
-                  onclick="openUILink('http://ie.microsoft.com/activities/en-en/default.aspx', event);if (event.button == 1) {closeMenus(event.target);}"/>
+                  oncommand="openUILink('&findMoreActivities.url;', event);"
+                  onclick="openUILink('&findMoreActivities.url;', event);if (event.button == 1) {closeMenus(event.target);}"/>
         <menuitem id="manage-activities" label="&manageActivities.label;"
                   oncommand="window.openDialog('chrome://msft_activities/content/manage_activities.xul','manage_activities','chrome,centerscreen,modal,resizable=yes');"/>
       </menupopup>
