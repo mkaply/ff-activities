@@ -334,6 +334,44 @@ var Activities = {};
     var previewpanel = document.getElementById("activities-preview-panel");
     previewpanel.addEventListener("popuphiding", previewWindowHiding, false);
     previewpanel.addEventListener("click", previewWindowClick, false);
+
+    function detectPageLoad(event) {
+	           var doc = event.originalTarget;
+        if (content.document != doc) {
+          return;
+        }
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"].
+                                      getService(Components.interfaces.nsIIOService);
+        var uri = ioService.newURI(doc.location.href, null, null);
+		try {
+		  if (!uri.host.match("ieaddons.com")) {
+		    return;
+		  }
+		} catch (ex) {
+		  return;
+		}
+		var acceluri = uri.scheme + '://' + uri.host + '/' + uri.path.split('/')[1] + '/';
+		
+		var buttons = doc.getElementsByTagName("button");
+		for (var i=0; i < buttons.length; i++) {
+		  if (buttons[i].className == "installbtn") {
+			var onclick = buttons[i].getAttribute("onclick");
+			if (onclick.match("downloadResource")) {
+			  var button_text = buttons[i].textContent;
+			  button_text = button_text.replace("Internet Explorer", "Firefox");
+			  buttons[i].textContent = button_text;
+			  onclick = onclick.replace("nitobi.downloadResource(", "");
+			  var resID = onclick.split(',')[0];
+			  var new_onclick = "window.external.addService('" + acceluri + "DownloadHandler.ashx?ResourceId=" + resID + "');return false;";
+			  buttons[i].setAttribute("onclick", new_onclick);
+			}
+		  }
+		}
+	}
+    var appcontent = document.getElementById("appcontent");   // browser
+    if (appcontent) {
+      appcontent.addEventListener("DOMContentLoaded", detectPageLoad, true);
+    }
   }
   function hidemenu() {
     if (dontHide) {
