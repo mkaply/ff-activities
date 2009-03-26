@@ -19,6 +19,6 @@
 <!ENTITY from.label "Fra:">
 <!ENTITY webAddress.label "Net addresse:">
 <!ENTITY type.label "Tast:">
-<!ENTITY makeDefault.label "Make this my default provider for this type of activity">
-<!ENTITY addProvider.label "Add Provider">
-<!ENTITY displayActivityButton.label "Display Activity button on selection">
+<!ENTITY makeDefault.label "Gør dette til min standard leverandør for denne slags aktivitet">
+<!ENTITY addProvider.label "Tilføj leverandør">
+<!ENTITY displayActivityButton.label "Vis aktivitets knap når markeret">

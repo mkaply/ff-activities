@@ -1,0 +1,24 @@
+<!ENTITY activities.title "Etkinlikler">
+<!ENTITY activities.label "Etkinlikler">
+<!ENTITY moreActivities.label "Daha Çok Etkinlik">
+<!ENTITY findMoreActivities.label "Daha Çok Etkinlik Bul...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/tr/accelerators/">
+<!ENTITY manageActivities.label "Etkinlikleri Yönet...">
+<!ENTITY manageActivitiesDialog.label "Etkinlikleri Yönet">
+<!ENTITY nameColumn.label "İsim">
+<!ENTITY addressColumn.label "Adres">
+<!ENTITY categoryColumn.label "Kategori">
+<!ENTITY statusColumn.label "Durum">
+<!ENTITY enable.label "Etkin">
+<!ENTITY disable.label "Pasif">
+<!ENTITY setDefault.label "Varsayılan Olarak Ayarla">
+<!ENTITY removeDefault.label "Varsayılanı Sil">
+<!ENTITY delete.label "Sil">
+<!ENTITY addMessage.description "Bu etkinlik sağlayıcıyı silmek istiyor musunuz?">
+<!ENTITY name.label "İsim:">
+<!ENTITY from.label "Konum:">
+<!ENTITY webAddress.label "Web adresi:">
+<!ENTITY type.label "Tür:">
+<!ENTITY makeDefault.label "Bu etkinlik için varsayılan sağlayıcım yap">
+<!ENTITY addProvider.label "Sağlayıcı Ekle">
+<!ENTITY displayActivityButton.label "Seçimde etkinlik butonunu göster">
