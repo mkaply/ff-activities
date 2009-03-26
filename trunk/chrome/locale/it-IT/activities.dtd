@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Provider d&apos;attività">
 <!ENTITY moreActivities.label "Firefox Activities">
 <!ENTITY findMoreActivities.label "Trova provider attività...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/it/accelerators/">
 <!ENTITY manageActivities.label "Gestione provider...">
 <!ENTITY manageActivitiesDialog.label "Gestione dei provider">
 <!ENTITY nameColumn.label "Nome">

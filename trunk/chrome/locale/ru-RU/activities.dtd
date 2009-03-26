@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Activities - Способы обработки">
 <!ENTITY moreActivities.label "Больше Activities">
 <!ENTITY findMoreActivities.label "Найти больше Activities...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/en/accelerators/">
 <!ENTITY manageActivities.label "Управление Activities...">
 <!ENTITY manageActivitiesDialog.label "Управление Activities">
 <!ENTITY nameColumn.label "Имя">

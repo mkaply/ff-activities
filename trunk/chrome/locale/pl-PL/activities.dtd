@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Usługi">
 <!ENTITY moreActivities.label "Więcej usług">
 <!ENTITY findMoreActivities.label "Znajdź więcej usług...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/pl/accelerators/">
 <!ENTITY manageActivities.label "Zarządzaj usługami...">
 <!ENTITY manageActivitiesDialog.label "Zarządzanie usługami">
 <!ENTITY nameColumn.label "Nazwa">

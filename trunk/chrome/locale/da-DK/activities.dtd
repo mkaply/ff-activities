@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Aktiviteter">
 <!ENTITY moreActivities.label "Flere aktiviteter">
 <!ENTITY findMoreActivities.label "Find flere aktiviteter...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/en/accelerators/">
 <!ENTITY manageActivities.label "Håndter aktiviteter...">
 <!ENTITY manageActivitiesDialog.label "Håndter aktiviteter">
 <!ENTITY nameColumn.label "Navn">

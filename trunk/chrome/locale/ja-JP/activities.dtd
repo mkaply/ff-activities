@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Activities">
 <!ENTITY moreActivities.label "追加の Activities">
 <!ENTITY findMoreActivities.label "追加の Activities を検索...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/jp/accelerators/">
 <!ENTITY manageActivities.label "Activities を管理...">
 <!ENTITY manageActivitiesDialog.label "Activities の管理">
 <!ENTITY nameColumn.label "名前">
