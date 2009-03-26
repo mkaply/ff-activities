@@ -1,0 +1,6 @@
+Activities.kpf
+buildit.sh
+buildit.cmd
+excludefile.txt
+chrome/content/preview_menu.xul
+chrome/content/test.xul
