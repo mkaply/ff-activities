@@ -1,0 +1,23 @@
+<!ENTITY activities.title "Actividades">
+<!ENTITY activities.label "Actividades">
+<!ENTITY moreActivities.label "Más actividades">
+<!ENTITY findMoreActivities.label "Encontrar más actividades...">
+<!ENTITY manageActivities.label "Gestionar actividades...">
+<!ENTITY manageActivitiesDialog.label "Gestionar actividades...">
+<!ENTITY nameColumn.label "Nombre">
+<!ENTITY addressColumn.label "Dirección">
+<!ENTITY categoryColumn.label "Categoría">
+<!ENTITY statusColumn.label "Estado">
+<!ENTITY enable.label "Habilitar">
+<!ENTITY disable.label "Deshabilitar">
+<!ENTITY setDefault.label "Ajustes por defecto">
+<!ENTITY removeDefault.label "Eliminar por defecto">
+<!ENTITY delete.label "Eliminar">
+<!ENTITY addMessage.description "¿Quiere añadir este proveedor de actividad?">
+<!ENTITY name.label "Nombre:">
+<!ENTITY from.label "Desde:">
+<!ENTITY webAddress.label "Dirección Web:">
+<!ENTITY type.label "Tipo:">
+<!ENTITY makeDefault.label "Hacer éste mi proveedor por defecto para este tipo de actividad">
+<!ENTITY addProvider.label "Añadir proveedor">
+<!ENTITY displayActivityButton.label "Mostrar botón de actividad en selección">
