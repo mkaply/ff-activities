@@ -2,6 +2,7 @@
 <!ENTITY activities.label "Aktivity">
 <!ENTITY moreActivities.label "Více aktivit">
 <!ENTITY findMoreActivities.label "Najít více aktivit...">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/cs/accelerators/">
 <!ENTITY manageActivities.label "Spravovat aktivity...">
 <!ENTITY manageActivitiesDialog.label "Správa aktivit">
 <!ENTITY nameColumn.label "Jméno">

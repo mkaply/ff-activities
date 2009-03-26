@@ -2,6 +2,7 @@
 <!ENTITY activities.label "活動套件">
 <!ENTITY moreActivities.label "更多活動套件">
 <!ENTITY findMoreActivities.label "尋找更多活動套件…">
+<!ENTITY findMoreActivities.url "http://www.ieaddons.com/ct/accelerators/">
 <!ENTITY manageActivities.label "管理活動套件…">
 <!ENTITY manageActivitiesDialog.label "管理活動套件">
 <!ENTITY nameColumn.label "名稱">
