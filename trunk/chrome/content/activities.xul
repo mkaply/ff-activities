@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE activities2 SYSTEM "chrome://msft_activities/locale/activities.dtd">
-<overlay id="operator" 
+<overlay
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript;version=1.7" src="chrome://msft_activities/content/activities.js"/>
   <popup id="contentAreaContextMenu">
