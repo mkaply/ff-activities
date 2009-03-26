@@ -561,9 +561,9 @@ var Activities = {};
       }
     } else {
       if (action.Method.toLowerCase() == "post") {
-        openUILink(url, event, undefined, undefined, undefined, postData, undefined);
+        openUILinkIn(url, "tab", false, postData);
       } else {
-        openUILink(url, event);
+        openUILinkIn(url, "tab");
       }
       if (click) {
         closeMenus(event.target);
@@ -574,8 +574,7 @@ var Activities = {};
     if ((event.target.nodeName == "A") &&
         event.target.hasAttribute("target") &&
         (event.target.getAttribute("target") == "_blank")) {
-      var tab = getBrowser().addTab(event.target.getAttribute("href"));
-      getBrowser().selectedTab = tab;
+	  openUILinkIn(event.target.getAttribute("href"), "tab");
       hidePreviewWindow();
       document.getElementById("contentAreaContextMenu").hidePopup();
 	  event.preventDefault();
@@ -670,7 +669,7 @@ var Activities = {};
     var engine = event.target.engine;
     var submission = engine.getSubmission(selection, null);
     /* Might want to handle postData someday */
-    openUILink(submission.uri.spec, event);
+    openUILinkIn(submission.uri.spec, "tab");
     if (click) {
       closeMenus(event.target);
     }
