@@ -138,7 +138,11 @@ var Activities = {};
     serviceObject.ActionCount = activityActions.length;
     for (let i=1; i<=activityActions.length; i++) {
       serviceObject["Action"+i] = {};
-      serviceObject["Action"+i].Context = activityActions[i-1].getAttribute("context").replace(/^\s*|\s*$/g,'');
+      if (activityActions[i-1].hasAttribute("context")) {
+        serviceObject["Action"+i].Context = activityActions[i-1].getAttribute("context").replace(/^\s*|\s*$/g,'');
+      } else {
+        serviceObject["Action"+i].Context = "selection";
+      }
       var previews = activityActions[i-1].getElementsByTagNameNS(namespaceURI, "preview");
       if (previews.length > 0) {
         serviceObject["Action"+i].HasPreview = true;
