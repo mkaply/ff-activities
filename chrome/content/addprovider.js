@@ -100,8 +100,17 @@ function onAccept() {
 
     var ios = Components.classes["@mozilla.org/network/io-service;1"]
                     .getService(Components.interfaces.nsIIOService);
-    var splitpath = icon.split(".");
-    var extension = splitpath[splitpath.length-1];
+	var iconURI = ios.newURI(icon, null, null);
+	var splitpath = iconURI.path.split("/");
+	var filename = splitpath[splitpath.length-1];
+	var extension;
+	if (filename.match(".")) {
+      splitfilename = filename.split(".")
+	  extension = splitfilename[splitfilename.length-1];
+	} else {
+	  extension = ".ico";
+	}
+	
     iconfile.append(category + "_" + host + "." + extension);
     try {
       iconfile.remove(false);                         
