@@ -35,6 +35,13 @@ function (filename)
   return this.addService(filename);
 }
 
+function log(string) {
+      var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                                 .getService(Components.interfaces.nsIConsoleService);   
+    aConsoleService.logStringMessage(string);
+
+}
+
 function isValidService(doc) {
   var contexts =  {"selection" : true, "document" : true, "link" : true };
 
@@ -243,11 +250,26 @@ function (filename)
         securityerror = true;
       }
 
+      function fnCleanTree(node) {
+        var i=0, cNodes=node.childNodes, t;
+        while((t=cNodes.item(i++)))
+          switch(t.nodeType){
+            case 1: // Element Node
+              fnCleanTree(t);
+              break;
+            case 8: // Comment Node (and Text Node without non-whitespace content)
+              node.removeChild(t);
+              i--;
+        }
+      }
+
+      fnCleanTree(doc);
+	 
       securityerror = !isValidService(doc);
 
       /* Display appropriate error message if we had an error */
       if (securityerror) {
-        promptService.alert(win, bundle.GetStringFromName("activitiesTitle"), bundle.GetStringFromName("securityError")); 
+        promptService.alert(win, bundle.GetStringFromName("activitiesTitle"), bundle.GetStringFromName("securityError"));
       } else {
         var retVals = { ok: null, name: null };
         win.openDialog('chrome://msft_activities/content/addprovider.xul','addprovider','chrome,centerscreen,modal', result, win.content.location.href, retVals);
