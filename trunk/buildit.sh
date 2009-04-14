@@ -9,7 +9,11 @@ rsync -r --exclude=.svn --exclude-from=../excludefile.txt ../* .
 rm chrome.manifest
 rm chrome.manifest.flat
 mv chrome.manifest.jar chrome.manifest
-cd ..
+cd chrome
+zip -r activities.jar content locale
+rm -rf content
+rm -rf locale
+cd ../..
 cd $TOOLBARID
 VERSION=`grep "em:version" install.rdf | sed -e 's/[ \t]*em:version=//;s/"//g'`
 TOOLBAR=bt-$SHORTNAME-$VERSION
