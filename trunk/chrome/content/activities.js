@@ -279,6 +279,35 @@ var Activities = {};
   /* This function handles the window startup piece, initializing the UI and preferences */
   function startup()
   {
+	var firstrun = false;
+	try {
+	  firstrun = prefBranch.getBoolPref("firstrun");
+	} catch(ex) {
+	  firstrun = true;
+	}
+	/* get installed version */
+    var em = Cc["@mozilla.org/extensions/manager;1"]
+                       .getService(Ci.nsIExtensionManager);
+
+    var curVersion = em.getItemForID("activities@kaply.com").version;
+
+	if (firstrun) {
+      window.setTimeout(function(){
+        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/install.html");
+      }, 1500); //Firefox 2 fix - or else tab will get closed
+	  prefBranch.setBoolPref("firstrun", false);
+	  prefBranch.setCharPref("installedVersion", curVersion);
+	} else {
+	  var installedVersion = prefBranch.getCharPref("installedVersion");
+	  if (curVersion > installedVersion) {
+      window.setTimeout(function(){
+        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/upgrade.html");
+      }, 1500); //Firefox 2 fix - or else tab will get closed
+  	    prefBranch.setCharPref("installedVersion", curVersion);
+	  }
+	}
+
+
     /* Add an observer so we see changes to prefs */
     prefObserver = {
       observe: function observe(subject, topic, data) {
@@ -312,6 +341,26 @@ var Activities = {};
 
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
+
+    uninstallObserver = {
+      observe: function observe(subject, topic, data) {
+		if (topic == "em-action-requested") {
+		  subject.QueryInterface(Components.interfaces.nsIUpdateItem);
+	  
+		  if (subject.id == "activities@kaply.com") {
+			alert(data);
+			if (data == "item-uninstalled") {
+              gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/uninstall.html");
+			}
+		  }
+		}
+	  }
+    }
+
+
+
+   observerService.addObserver(uninstallObserver, "em-action-requested", false); 
+
     openServiceObserver = {
       observe: function observe(subject, topic, data) {
         switch (data) {
