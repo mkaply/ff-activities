@@ -293,7 +293,7 @@ var Activities = {};
 
 	if (firstrun) {
       window.setTimeout(function(){
-        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/install.html");
+        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/install");
       }, 1500); //Firefox 2 fix - or else tab will get closed
 	  prefBranch.setBoolPref("firstrun", false);
 	  prefBranch.setCharPref("installedVersion", curVersion);
@@ -301,7 +301,7 @@ var Activities = {};
 	  var installedVersion = prefBranch.getCharPref("installedVersion");
 	  if (curVersion > installedVersion) {
       window.setTimeout(function(){
-        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/upgrade.html");
+        gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/upgrade");
       }, 1500); //Firefox 2 fix - or else tab will get closed
   	    prefBranch.setCharPref("installedVersion", curVersion);
 	  }
@@ -350,7 +350,7 @@ var Activities = {};
 		  if (subject.id == "activities@kaply.com") {
 			alert(data);
 			if (data == "item-uninstalled") {
-              gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/uninstall.html");
+              gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/uninstall");
 			}
 		  }
 		}
