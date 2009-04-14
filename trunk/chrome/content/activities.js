@@ -813,7 +813,8 @@ var Activities = {};
       var menupopup = event.target;
       for(let i=menupopup.childNodes.length - 1; i >= 0; i--) {
         if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
-             (menupopup.childNodes.item(i).id != "manage-activities")) {
+             (menupopup.childNodes.item(i).id != "manage-activities") &&
+             (menupopup.childNodes.item(i).id != "recommend-kallout")) {
           menupopup.removeEventListener("command", execute, true);
           menupopup.removeEventListener("command", executeSearch, true);
           menupopup.removeEventListener("click", executeClick, true);
