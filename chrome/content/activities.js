@@ -327,7 +327,7 @@ var Activities = {};
             try {
               services[Verb][Host].Enabled = !Enabled;
             } catch (ex) {
-              alert(Verb);
+//              alert(Verb);
             }
           }
         }
@@ -348,7 +348,6 @@ var Activities = {};
 		  subject.QueryInterface(Components.interfaces.nsIUpdateItem);
 	  
 		  if (subject.id == "activities@kaply.com") {
-			alert(data);
 			if (data == "item-uninstalled") {
               gBrowser.selectedTab = gBrowser.addTab("http://kaply.com/activities/uninstall");
 			}
