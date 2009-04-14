@@ -13,8 +13,8 @@
         <menuitem id="manage-activities" label="&manageActivities.label;"
                   oncommand="window.openDialog('chrome://msft_activities/content/manage_activities.xul','manage_activities','chrome,centerscreen,modal,resizable=yes');"/>
         <menuitem id="recommend-kallout" label="Try KallOut Accelerators..."
-                  oncommand="openUILink('http://www.kaply.com/activities/recommend.html', event);"
-                  onclick="openUILink('http://www.kaply.com/activities/recommend.html', event);if (event.button == 1) {closeMenus(event.target);}"/>
+                  oncommand="openUILink('http://www.kaply.com/activities/recommend', event);"
+                  onclick="openUILink('http://www.kaply.com/activities/recommend', event);if (event.button == 1) {closeMenus(event.target);}"/>
       </menupopup>
     </menu>
   </popup>
