@@ -550,18 +550,38 @@ var Activities = {};
     if (action.Method.toLowerCase() == "post") {
       var stringStream =  Components.classes["@mozilla.org/io/string-input-stream;1"].
                                      createInstance(Components.interfaces.nsIStringInputStream);
-      if ("data" in stringStream) // Gecko 1.9 or newer
-        stringStream.data = query;
-      else // 1.8 or older
-        stringStream.setData(query, query.length);
-
       var postData = Components.classes["@mozilla.org/network/mime-input-stream;1"].
                                 createInstance(Components.interfaces.nsIMIMEInputStream);
       if (action.Enctype) {
-        postData.addHeader("Content-Type", action.Enctype);
+		if (action.Enctype == "multipart/form-data") {
+          var boundary = '---------------------------';
+		  boundary += Math.floor(Math.random()*32768);
+		  boundary += Math.floor(Math.random()*32768);
+		  boundary += Math.floor(Math.random()*32768);
+          postData.addHeader("Content-Type", 'multipart/form-data; boundary=' + boundary);
+		  var body = '';
+		  for (let i=1; i <= action.ParamCount; i++) {
+			var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type);
+			if (Value.length > 0) {
+			  body += '--' + boundary + '\r\n' + 'Content-Disposition: form-data; name="';
+			  body += action["Parameter"+i].Name;
+			  body += '"\r\n\r\n';
+			  body += Value;
+			  body += '\r\n'
+			}
+		  }
+		  body += '--' + boundary + '--';
+		  stringStream.data = body;
+		} else {
+          postData.addHeader("Content-Type", action.Enctype);
+		}
       } else {
         postData.addHeader("Content-Type", "application/x-www-form-urlencoded");
       }
+	  if (action.Enctype != "multipart/form-data") {
+        stringStream.data = query;
+	  }
+	  
       postData.addHeader("Accept-Charset", action["Accept-charset"]);
       postData.addContentLength = true;
       postData.setData(stringStream);
