@@ -469,14 +469,18 @@ var Activities = {};
       }
     }
   }
-  function encodeParam(instring, charset) {
-    var outstring = textToSubURI.ConvertAndEscape(charset, instring);
-    outstring = outstring.replace("%0D%0A", "+");
-    outstring = outstring.replace("%0D", "+");
-    outstring = outstring.replace("%0A", "+");
-    return outstring;
-  }
-  function doSubstitution(instring, data, charset, type) {
+  function doSubstitution(instring, data, charset, type, encode) {
+    function encodeParam(instring, charset) {
+	  if (encode) {
+        var outstring = textToSubURI.ConvertAndEscape(charset, instring);
+        outstring = outstring.replace("%0D%0A", "+");
+        outstring = outstring.replace("%0D", "+");
+        outstring = outstring.replace("%0A", "+");
+        return outstring;
+	  } else {
+		return instring;
+	  }
+    }
     var newstring = instring;
     newstring = newstring.replace("{documentTitle}", encodeParam(data.documentTitle, charset));
     newstring = newstring.replace("{documentTitle?}", encodeParam(data.documentTitle, charset));
@@ -539,14 +543,14 @@ var Activities = {};
       if (query.length != 0) {
         query += "&";
       }
-      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type);
+      var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type, true);
       if (Value.length > 0) {
         query += action["Parameter"+i].Name;
         query += "=";
         query += Value;
       }
     }
-    var url = doSubstitution(action.Action, activity, action["Accept-charset"]);
+    var url = doSubstitution(action.Action, activity, action["Accept-charset"], true);
     if (action.Method.toLowerCase() == "post") {
       var stringStream =  Components.classes["@mozilla.org/io/string-input-stream;1"].
                                      createInstance(Components.interfaces.nsIStringInputStream);
@@ -561,7 +565,7 @@ var Activities = {};
           postData.addHeader("Content-Type", 'multipart/form-data; boundary=' + boundary);
 		  var body = '';
 		  for (let i=1; i <= action.ParamCount; i++) {
-			var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type);
+			var Value = doSubstitution(action["Parameter"+i].Value, activity, action["Accept-charset"], action["Parameter"+i].Type, false);
 			if (Value.length > 0) {
 			  body += '--' + boundary + '\r\n' + 'Content-Disposition: form-data; name="';
 			  body += action["Parameter"+i].Name;
