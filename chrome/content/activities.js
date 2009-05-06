@@ -601,7 +601,6 @@ var Activities = {};
     }
     if (preview) {
       /* Open temp window with preview url */
-      var contextmenu = event.target.parentNode;
       var iframe = document.getElementById("activities-preview-iframe");
       if (iframe) {
         if (action.Method.toLowerCase() == "post") {
@@ -625,16 +624,35 @@ var Activities = {};
       var popup = document.getElementById("activities-preview-panel");
       if (popup) {
         if (popup.nodeName.toLowerCase() == "panel") {
+		  var contextmenu = document.getElementById("contentAreaContextMenu");
+		  var submenu = document.getElementById("activities-menupopup");
           popup.width = 326;
           popup.height = 246;
-//          popup.showPopup(contextmenu, 0,
-//                          0, "popup");
-          popup.openPopup(contextmenu, "end_after", 0, 0, false, null);
+
+		  if (event.target.parentNode.id == "contentAreaContextMenu") {
+            x = contextmenu.boxObject.x + contextmenu.boxObject.width;
+		    if ((window.screenX + x + 326) > screen.width) {
+			  x = contextmenu.boxObject.x - 326;
+			}
+		  } else {
+			if (window.screenX + contextmenu.boxObject.x + contextmenu.boxObject.width + submenu.boxObject.width > screen.width) {
+			  /* submenu to left */
+			  x = contextmenu.boxObject.x;
+			} else {
+			  /* submenu to right */
+			  x = contextmenu.boxObject.x + contextmenu.boxObject.width - 326;
+			}
+		  }
+		  y = event.clientY-25;
+		  if (popup.state == "open") {
+			popup.hidePopup();
+		  }
+		  popup.openPopup(null, "", x, y, false, null);
         } else {
           popup.showPopup(contextmenu, event.screenX,
                           event.screenY-25, "popup");
         }
-      }
+	  }
     } else {
       if (action.Method.toLowerCase() == "post") {
         openUILinkIn(url, "tab", false, postData);
