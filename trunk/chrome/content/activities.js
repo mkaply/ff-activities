@@ -422,7 +422,7 @@ var Activities = {};
 	}
     var appcontent = document.getElementById("appcontent");   // browser
     if (appcontent) {
-      appcontent.addEventListener("DOMContentLoaded", detectPageLoad, true);
+      appcontent.addEventListener("DOMContentLoaded", detectPageLoad, false);
     }
   }
   function hidemenu() {
@@ -761,8 +761,8 @@ var Activities = {};
     tempMenu.engine = engine;
     tempMenu.addEventListener("command",
                               executeSearch,
-                              true);
-    tempMenu.addEventListener("click", executeSearchClick, true);
+                              false);
+    tempMenu.addEventListener("click", executeSearchClick, false);
     event.target.insertBefore(tempMenu, menu);
     return true;
   }
@@ -782,14 +782,14 @@ var Activities = {};
         tempMenu.action = activity["Action"+j];
         tempMenu.addEventListener("command",
                                   execute,
-                                  true);
-        tempMenu.addEventListener("click", executeClick, true);
+                                  false);
+        tempMenu.addEventListener("click", executeClick, false);
         tempMenu.addEventListener("mouseover",
                                   delayPreview,
-                                  true);
+                                  false);
         tempMenu.addEventListener("mouseout",
                                   function(event){ if (previewTimerID) window.clearTimeout(previewTimerID);},
-                                  true);
+                                  false);
         event.target.insertBefore(tempMenu, menu);
         return true;
       }
@@ -821,11 +821,11 @@ var Activities = {};
       /* Remove existing menuitems */
       var separator = document.getElementById("activities-separator");
       while (separator.nextSibling && (separator.nextSibling.id != "activities-menu")) {
-        separator.nextSibling.removeEventListener("command", execute, true);
-        separator.nextSibling.removeEventListener("command", executeSearch, true);
-        separator.nextSibling.removeEventListener("click", executeClick, true);
-        separator.nextSibling.removeEventListener("click", executeSearchClick, true);
-        separator.nextSibling.removeEventListener("mouseover", delayPreview, true);
+        separator.nextSibling.removeEventListener("command", execute, false);
+        separator.nextSibling.removeEventListener("command", executeSearch, false);
+        separator.nextSibling.removeEventListener("click", executeClick, false);
+        separator.nextSibling.removeEventListener("click", executeSearchClick, false);
+        separator.nextSibling.removeEventListener("mouseover", delayPreview, false);
         separator.nextSibling.parentNode.removeChild(separator.nextSibling);
       }
     } else {
@@ -834,11 +834,11 @@ var Activities = {};
         if ((menupopup.childNodes.item(i).id != "find-more-activities") &&
              (menupopup.childNodes.item(i).id != "manage-activities") &&
              (menupopup.childNodes.item(i).id != "recommend-kallout")) {
-          menupopup.removeEventListener("command", execute, true);
-          menupopup.removeEventListener("command", executeSearch, true);
-          menupopup.removeEventListener("click", executeClick, true);
-          menupopup.removeEventListener("click", executeSearchClick, true);
-          menupopup.removeEventListener("mouseover", delayPreview, true);
+          menupopup.removeEventListener("command", execute, false);
+          menupopup.removeEventListener("command", executeSearch, false);
+          menupopup.removeEventListener("click", executeClick, false);
+          menupopup.removeEventListener("click", executeSearchClick, false);
+          menupopup.removeEventListener("mouseover", delayPreview, false);
           menupopup.removeChild(menupopup.childNodes.item(i));
         }
       }
