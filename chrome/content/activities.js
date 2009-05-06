@@ -700,14 +700,14 @@ var Activities = {};
     if (hidePreviewTimerID) {
       window.clearTimeout(hidePreviewTimerID);
     }
-    hidePreviewTimerID = window.setTimeout(function () {hidePreviewWindow();}, 500);
+    hidePreviewTimerID = window.setTimeout(hidePreviewWindow, 500);
   }
   function delayPreview(event) {
     /* Should we check to make sure the node involved is microformat related ? */
     if (previewTimerID) {
       window.clearTimeout(previewTimerID);
     }
-    previewTimerID = window.setTimeout(function () {executePreview(event);}, 500);
+    previewTimerID = window.setTimeout(executePreview, 500, event);
   }
   function isAdr(node) {
     if (typeof(Microformats) == "undefined") {
@@ -809,7 +809,7 @@ var Activities = {};
           if (hideContextMenuTimerID) {
             window.clearTimeout(hideContextMenuTimerID);
           }
-          hideContextMenuTimerID = window.setTimeout(function () {hidemenu();}, 250);
+          hideContextMenuTimerID = window.setTimeout(hidemenu, 250);
         } else {
           hidePreviewWindow();
         }
