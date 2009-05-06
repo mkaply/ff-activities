@@ -689,7 +689,8 @@ var Activities = {};
   }
   function delayHidePreview(event) {
     if ((event.target.id == "contentAreaContextMenu") ||
-        (event.target.id == "activities-menupopup")) {
+        (event.target.id == "activities-menupopup") ||
+		(event.target.parentNode.id == "activities-menupopup")) {
       return;
     }
 
