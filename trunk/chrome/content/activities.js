@@ -251,27 +251,32 @@ var Activities = {};
             cis.readString(sourcefile.fileSize, xmlFile);
             cis.close();
 
+            try {
             var doc = domParser.parseFromString(xmlFile.value.replace(/^\s+/,""), "text/xml");
 
-            var serviceObject = serviceObjectFromDocument(doc);
-            if (!services[serviceObject.Verb]) {
-              services[serviceObject.Verb] = {}; 
-            }
-            /* This is really ugly. If we have an icon URL, get the extension */
-            /* and then access the local file version */
-            if (serviceObject.Icon) {
-              var iconfile = f.clone();
-              
-              var uri = ioService.newURI(serviceObject.Icon, null, null);
-              /* Need an nsIURL to get leafName */
-              uri.QueryInterface(Components.interfaces.nsIURL);
-              var splitpath = uri.fileName.split(".");
-              var extension = splitpath[splitpath.length-1];
-              iconfile.leafName = serviceObject.Verb + "_" + serviceObject.Domain + "." + extension;
-
-              serviceObject.Icon = ioService.newFileURI(iconfile).spec;
-            }
-            services[serviceObject.Verb][serviceObject.Domain] = serviceObject;
+			  var serviceObject = serviceObjectFromDocument(doc);
+			  if (!services[serviceObject.Verb]) {
+				services[serviceObject.Verb] = {}; 
+			  }
+			  /* This is really ugly. If we have an icon URL, get the extension */
+			  /* and then access the local file version */
+			  if (serviceObject.Icon) {
+				var iconfile = f.clone();
+				
+				var uri = ioService.newURI(serviceObject.Icon, null, null);
+				/* Need an nsIURL to get leafName */
+				uri.QueryInterface(Components.interfaces.nsIURL);
+				var splitpath = uri.fileName.split(".");
+				var extension = splitpath[splitpath.length-1];
+				iconfile.leafName = serviceObject.Verb + "_" + serviceObject.Domain + "." + extension;
+  
+				serviceObject.Icon = ioService.newFileURI(iconfile).spec;
+			  }
+			  services[serviceObject.Verb][serviceObject.Domain] = serviceObject;
+			} catch (ex) {
+			  dump(ex);
+			  /* Ignore invalid XML files */
+			}
         }
       }
     }
@@ -975,13 +980,9 @@ var Activities = {};
   }
   
   function dump(message) {
-    var consoleService = Components.classes["@mozilla.org/consoleservice;1"].
-                                    getService(Components.interfaces.nsIConsoleService);
-    var scriptError = Components.classes["@mozilla.org/scripterror;1"].
-                                 createInstance(Components.interfaces.nsIScriptError);
-    scriptError.init("Activities: " + message, content.document.location.href, null, 0, 
-                     null, 0, 0);
-    consoleService.logMessage(scriptError);
+    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                                 .getService(Components.interfaces.nsIConsoleService);   
+    aConsoleService.logStringMessage("Activities: " + message);
   }
   
 //  /* Attempt to use the Microformats module if available (Firefox 3) */
