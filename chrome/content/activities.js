@@ -417,8 +417,7 @@ var Activities = {};
 			  var button_text = buttons[i].textContent;
 			  button_text = button_text.replace("Internet Explorer", "Firefox");
 			  buttons[i].textContent = button_text;
-			  onclick = onclick.replace("nitobi.downloadResource(", "");
-			  var resID = onclick.split(',')[0];
+			  var resID = onclick.match(/[\d]+/g)[0];
 			  var new_onclick = "window.external.addService('" + acceluri + "DownloadHandler.ashx?ResourceId=" + resID + "');return false;";
 			  buttons[i].setAttribute("onclick", new_onclick);
 			}
